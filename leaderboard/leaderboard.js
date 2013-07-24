@@ -1,6 +1,5 @@
 // Set up a collection to contain player information. On the server,
 // it is backed by a MongoDB collection named "players".
-
 Players = new Meteor.Collection("players");
 
 
@@ -73,8 +72,8 @@ if (Meteor.isServer) {
 
 Meteor.methods({
   randomizer: function() {
+    allPlayers = Players.find({});
     allPlayers.forEach(function (player) {
-      console.log(player);
       Players.update(player._id, {$set: {score: Math.floor(Random.fraction()*10)*5}}, true);
       });
     return "success";
