@@ -10,4 +10,6 @@ Package.on_use(function (api) {
   api.use(['underscore'], 'client');
   api.add_files(['rethink.js'], 'server');
   api.add_files(['tables.js'], 'server');
+  api.add_files(['local_table_driver.js'], 'server');
+  api.add_files(['remote_table_driver.js'], 'server');
 });
