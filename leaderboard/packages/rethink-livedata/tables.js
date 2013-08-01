@@ -4,7 +4,6 @@ var RethinkClient = Npm.require('rethinkdb');
 var Fibers = Npm.require('fibers');
 var Future = Npm.require('fibers/future');
 // Meteor.Rethink.on('ready', function () {console.log(Meteor.Rethink.connection);});
-console.log(Meteor._RemoteTableDriver);
 var Table = function(tableName, options) {
   var self = this;
   if (! (self instanceof Meteor.Table)) {
@@ -22,98 +21,17 @@ var Table = function(tableName, options) {
   if (!options._driver) {
     if (tableName && self._connection === Meteor.default_server && Meteor._RemoteTableDriver) {
       options._driver = Meteor._RemoteTableDriver;
-      console.log(Meteor._RemoteTableDriver);
     } else {
       options._driver = Meteor._LocalTableDriver;
     }
   }
-  // self._table = options._driver.open(tableName);
+  self._table = options._driver.open(tableName);
+  console.log(self._connection.registerStore);
   self.tableName = tableName;
-
-  var makeTable = function(tableName) {
-    RethinkClient.connect({
-      host:'localhost',
-      port: 28015,
-      db: 'test'
-      }, function(err, conn){
-        if(err) throw err;
-        connection = conn;
-        r.db('test').tableCreate(tableName).run(conn, function(){
-          conn.close();
-        });
-    });
-  };
-
-  // ['insert', 'update', 'replace', 'delete'].forEach(function(writeMethod) {
-  //   self[writeMethod] = function() {
-  //     var future;
-  //     if(Fibers.current) {
-  //       future = new Future();
-  //       Array.prototype.push.call(arguments. future.resolver());
-  //     }
-
-  //     applyMethod(arguments);
-  //     if (future) {
-  //       future.wait();
-  //     }
-
-  //     if(writeMethod === 'insert') {
-  //       return arguments[0]._id;
-  //     }
-  //   };
-
-  //   var applyMethod = function(args) {
-  //     if(self.tableName) {
-  //       doApply();
-  //     } else {
-
-  //     }
-  //   }
-  // })
-  // var makeTable = function(tableName) {
-  //   r.db('test').tableCreate(tableName).run(Meteor.Rethink.connection, function() {
-  //     console.log('success');
-  //   });
-  // };
-
-  // if (Meteor.Rethink.connection) {
-  //   makeTable(tableName);
-  // } else {
-  //   Meteor.Rethink.on('ready', makeTable(tableName));
-  // }
-  makeTable(tableName);
 };
 
 Meteor.Table = Table;
 
-//todo -- provide support for durability / returnVals arguments
-Table.prototype._insert = function(document, callback) {
-  var self = this;
-  if (!document._id) {
-    document._id = Random.id();
-  }
-  // Insert returns an object that contains the following attributes:
-
-  //     inserted - the number of documents that were succesfully inserted;
-  //     replaced - the number of documents that were updated when upsert is used;
-  //     unchanged - the number of documents that would have been modified, except that the new value was the same as the old value when doing an upsert;
-  //     errors - the number of errors encountered while inserting;
-  //     if errors where encountered while inserting, first_error contains the text of the first error;
-  //     generated_keys - a list of generated primary key values;
-  //     deleted and skipped - 0 for an insert operation.
-  RethinkClient.connect({
-    host:'localhost',
-    port: 28015,
-    db: 'test'
-    }, function(err, conn){
-      if(err) throw err;
-      connection = conn;
-      r.table(self.tableName).insert(document).run(conn, function() {
-        self.connection = conn;
-      });
-    }
-  );
-};
 
 _.extend(Meteor.Table.prototype, {
 
@@ -126,7 +44,56 @@ _.extend(Meteor.Table.prototype, {
   }
 });
 
-setTimeout(function() { var Players = new Meteor.Table("players");
-}, 5000);
-// var John = new Meteor.Table("john");
-// John._insert({name: "OMG"});
+//todo:: add functionality for other functions such as update / remove
+_.each(["insert"], function(name) {
+  Meteor.Table.prototype[name] = function (/* arguments */) {
+    var self = this;
+    var args = _.toArray(arguments);
+    var callback;
+    var ret;
+
+    if (args.length && args[args.length - 1] instanceof Function)
+      callback = args.pop();
+
+    if (Meteor.isClient && !callback) {
+      // (from Meteor -->) Client can't block, so it can't report errors by exception,
+      // only by callback. If they forget the callback, give them a
+      // default one that logs the error, so they aren't totally
+      // baffled if their writes don't work because their database is
+      // down.
+      callback = function (err) {
+        if (err) {
+          Meteor._debug(name + " failed: " + (err.reason || err.stack));
+        }
+      };
+    }
+
+    if (name === "insert") {
+      if (!args.length) {
+        throw new Error("insert requires an argument!");
+      }
+      // do i need to generate an ID??
+      // args[0] = _.extend({}, args[0]);
+    }
+
+    // if we are the remote collection
+    if (self._connection && self._connection !== Meteor.default_server) {
+
+      var enclosing = Meteor._CurrentInvocation.get();
+      var alreadyInSimulation = enclosing && enclosing.isSimulation;
+      if (!alreadyInSimulation && name !== "insert") {
+        // In other words, if we're actually about to send an RPC
+        // there may be a need for an error here but I'm not sure why
+        // it has something to do with selectors, and rethink doesn't
+        // have selectors...
+      }
+
+      if (callback) {
+        // asynchronous: on success, callback should return ret
+        // (document ID for insert, undefined for update and remove),
+        // not the method's result.
+        
+      }
+    }
+  };
+});
