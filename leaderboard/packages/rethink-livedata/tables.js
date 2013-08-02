@@ -25,8 +25,10 @@ var Table = function(tableName, options) {
       options._driver = Meteor._LocalTableDriver;
     }
   }
+  console.log(Meteor.isClient);
+  console.log(self._connection);
   self._table = options._driver.open(tableName);
-  console.log(self._connection.registerStore);
+  console.log(self._table);
   self.tableName = tableName;
 };
 
@@ -72,8 +74,19 @@ _.each(["insert"], function(name) {
       if (!args.length) {
         throw new Error("insert requires an argument!");
       }
-      // do i need to generate an ID??
-      // args[0] = _.extend({}, args[0]);
+      // Meteor wants us to generate an ID
+      // first make a shallow copy of the document
+      args[0] = _.extend({}, args[0]);
+      if ('_id' in args[0]) {
+        ret = args[0]._id;
+        if (!(typeof ret === 'string' || ret instanceof Meteor.Collection.ObjectID)) {
+          throw new Error("Meteor requires document _id fields to be strings or ObjectIDs");
+        } else {
+          ret = args[0]._id = self._makeNewID();
+        }
+      }
+    } else {
+      args[0] = Meteor.Collection._rewriteSelector(args[0]);
     }
 
     // if we are the remote collection
@@ -86,14 +99,82 @@ _.each(["insert"], function(name) {
         // there may be a need for an error here but I'm not sure why
         // it has something to do with selectors, and rethink doesn't
         // have selectors...
+        throwIfSelectorIsNotId(args[0], name);
       }
 
       if (callback) {
         // asynchronous: on success, callback should return ret
         // (document ID for insert, undefined for update and remove),
         // not the method's result.
-        
+
+        // self.connection.apply
+        // (but can't apply because the method doesn't exist in the connection)
       }
     }
   };
 });
+
+Meteor.Table.prototype._defineMutationMethods = function() {
+  var self = this;
+  // set to true once we call any allow or deny methods. If true, use
+  // allow/deny semantics. If false, use insecure mode semantics.
+  self._restricted = false;
+  // Insecure mode (default to allowing writes). Defaults to 'undefined'
+  // which means use the global Meteor.Collection.insecure.  This
+  // property can be overriden by tests or packages wishing to change
+  // insecure mode behavior of their collections.
+  self._insecure = undefined;
+
+  self._validators = {
+    insert: {allow: [], deny: []},
+    update: {allow: [], deny: []},
+    remove: {allow: [], deny: []}
+  };
+  if (!self._name) {
+    return; //anonymous collection
+  }
+  self._prefix = '/rethink/' + self._name + '/';
+  //and here we go -- mutation methods
+  if (self._connection) {
+    var m = {};
+
+    _.each(['insert', 'update', 'remove'], function (method) {
+      m[self._prefix + method] = function (/* ... */) {
+        try {
+          if (this.isSimulation) {
+
+            // Because this is a client simulation, you can do any mutation
+            // (even with a complex selector)
+            self._table[method].apply(
+              self._table, _.toArray(arguments));
+            return;
+          }
+          // This is the server receiving a method call from the client.
+          // Meteor doesn't allow arbitrary selectors in mutations from the client:
+          // only single-ID selectors.
+          if (method !== 'insert') {
+            throwIfSelectorIsNotId(arguments[0], method);
+          }
+          if (self._restricted) {
+            // short circuit if there is no way it will pass
+            if (self._validators[method].allow.length === 0) {
+              throw new Meteor.Error(
+                403, "Access denied. No allow validators set on restricted " +
+                  "collection for method '" + method + "'.");
+            }
+
+            var validatedMathodName =
+                  '_validated' + method.charAt(0).toUpperCase() + method.slice(1);
+            var argsWithUserId = [this.userId].concat(_.toArray(arguments));
+            // self[validatedMathodName]
+          }
+
+
+        }
+      };
+    });
+  }
+};
+setTimeout(function() {var tuhin = new Meteor.Table("tuhin");}, 500);
+
+

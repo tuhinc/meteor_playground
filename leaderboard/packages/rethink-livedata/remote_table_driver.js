@@ -8,7 +8,7 @@ _.extend(Meteor._RemoteTableDriver.prototype, {
     var self = this;
     var ret = {};
     _.each(
-      [],
+      ['insert'],
       function(r) {
         ret[r] = _.bind(self.rethink[r], self.rethink, name);
       });

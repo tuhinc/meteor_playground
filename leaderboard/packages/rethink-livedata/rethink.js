@@ -51,7 +51,7 @@ _Rethink.prototype._maybeBeginWrite = function () {
 
 
 //todo -- provide support for durability / returnVals arguments
-_Rethink.prototype._insert = function(tableName, document) {
+_Rethink.prototype.insert = function(tableName, document) {
   var self = this;
   if (!document._id) {
     document._id = Random.id();
