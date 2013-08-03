@@ -8,7 +8,7 @@ _.extend(Meteor._LocalTableDriver.prototype, {
     var self = this;
     if (!name)
       return new LocalTable();
-    if (!(name in self.collections))
+    if (!(name in self.tables))
       self.tables[name] = new LocalTable();
     return self.tables[name];
   }

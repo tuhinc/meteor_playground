@@ -1,10 +1,10 @@
-var EventEmitter = Npm.require('events').EventEmitter;
-var r = Npm.require('rethinkdb');
-var RethinkClient = Npm.require('rethinkdb');
-var Fibers = Npm.require('fibers');
-var Future = Npm.require('fibers/future');
+// var EventEmitter = Npm.require('events').EventEmitter;
+// var r = Npm.require('rethinkdb');
+// var RethinkClient = Npm.require('rethinkdb');
+// var Fibers = Npm.require('fibers');
+// var Future = Npm.require('fibers/future');
 // Meteor.Rethink.on('ready', function () {console.log(Meteor.Rethink.connection);});
-var Table = function(tableName, options) {
+Meteor.Table = function(tableName, options) {
   var self = this;
   if (! (self instanceof Meteor.Table)) {
     throw new Error('use "new" to construct a Meteor.Table');
@@ -17,7 +17,6 @@ var Table = function(tableName, options) {
   self._connection = tableName && (options.connection ||
                                   (Meteor.isClient ?
                                   Meteor.default_connection : Meteor.default_server));
-
   if (!options._driver) {
     if (tableName && self._connection === Meteor.default_server && Meteor._RemoteTableDriver) {
       options._driver = Meteor._RemoteTableDriver;
@@ -25,16 +24,13 @@ var Table = function(tableName, options) {
       options._driver = Meteor._LocalTableDriver;
     }
   }
-  console.log(Meteor.isClient);
-  console.log(self._connection);
+
   self._table = options._driver.open(tableName);
-  console.log(self._table);
-  self.tableName = tableName;
+  self._tableName = tableName;
+  self._defineMutationMethods();
 };
 
-Meteor.Table = Table;
-
-
+console.log(Meteor.Table);
 _.extend(Meteor.Table.prototype, {
 
   get: function(string, callback) {
@@ -46,7 +42,8 @@ _.extend(Meteor.Table.prototype, {
   }
 });
 
-//todo:: add functionality for other functions such as update / remove
+//TODO:: add functionality for other functions such as update / remove
+//TODO:: also figure out what the fuck is going on in this function
 _.each(["insert"], function(name) {
   Meteor.Table.prototype[name] = function (/* arguments */) {
     var self = this;
@@ -86,10 +83,11 @@ _.each(["insert"], function(name) {
         }
       }
     } else {
+      //TODO figure out what this does
       args[0] = Meteor.Collection._rewriteSelector(args[0]);
     }
 
-    // if we are the remote collection
+    // if we are the local collection
     if (self._connection && self._connection !== Meteor.default_server) {
 
       var enclosing = Meteor._CurrentInvocation.get();
@@ -107,15 +105,44 @@ _.each(["insert"], function(name) {
         // (document ID for insert, undefined for update and remove),
         // not the method's result.
 
-        // self.connection.apply
-        // (but can't apply because the method doesn't exist in the connection)
+        // basically this is going to call the "validated" insert
+
+        // XXX TODO XXX
+        // figure out what the fuck this callback is about and whether
+        // or not it can be avoided
+        // I'm pretty sure this is the RPC call
+        self._connection.apply(self._prefix + name, args, function(error, result) {
+          callback(error, !error && ret);
+        });
+      } else {
+        // TODO // figure out what synchronous means in this context as well
+        // here it is getting called without the callback
+        self._connection.apply(self._prefix + name, args);
       }
+
+    } else {
+      try {
+        self._table[name].apply(self._table, args);
+      } catch (error) {
+        if (callback) {
+          callback(error);
+          return null;
+        }
+        throw error;
+      }
+      // and on success, return *ret*, not the connection's return value
+      callback && callback(null, ret);
     }
+
+    // for both sync and async, unless we threw an exception, return ret
+    // (which is the new doc ID for insert, and otherwise undefined);
+    return ret;
   };
 });
 
 Meteor.Table.prototype._defineMutationMethods = function() {
   var self = this;
+  console.log(self._tableName);
   // set to true once we call any allow or deny methods. If true, use
   // allow/deny semantics. If false, use insecure mode semantics.
   self._restricted = false;
@@ -130,14 +157,13 @@ Meteor.Table.prototype._defineMutationMethods = function() {
     update: {allow: [], deny: []},
     remove: {allow: [], deny: []}
   };
-  if (!self._name) {
+  if (!self._tableName) {
     return; //anonymous collection
   }
-  self._prefix = '/rethink/' + self._name + '/';
+  self._prefix = '/rethink/' + self._tableName + '/';
   //and here we go -- mutation methods
   if (self._connection) {
     var m = {};
-
     _.each(['insert', 'update', 'remove'], function (method) {
       m[self._prefix + method] = function (/* ... */) {
         try {
@@ -166,13 +192,29 @@ Meteor.Table.prototype._defineMutationMethods = function() {
             var validatedMathodName =
                   '_validated' + method.charAt(0).toUpperCase() + method.slice(1);
             var argsWithUserId = [this.userId].concat(_.toArray(arguments));
-            // self[validatedMathodName]
+            self[validatedMathodName].apply(self, argsWithUserId);
+          } else if (self._isInsecure()) {
+            // In insecure mode, allow any mutation (with a simple selector?!?!).
+            // TODO:: this is going to have to be changed...
+            self._table[method].apply(
+              self._table, _.toArray(arguments));
+          } else {
+            // In secure mode, if we haven't called allow or deny then nothing
+            // is permitted.
+            throw new Meteor.Error(403, "Access denied");
           }
-
-
+        } catch (error) {
+          if (error.name === 'RethinkError' || error.name === 'MinirethinkError') {
+            throw new Meteor.Error(409, error.toString());
+          } else {
+            throw error;
+          }
         }
       };
     });
+    if (Meteor.isClient || self._connection === Meteor.default_server) {
+      self._connection.methods(m);
+    }
   }
 };
 setTimeout(function() {var tuhin = new Meteor.Table("tuhin");}, 500);

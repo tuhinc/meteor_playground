@@ -5,8 +5,6 @@ var Fiber = Npm.require('fibers');
 var path = Npm.require('path');
 var Future = Npm.require(path.join('fibers', 'future'));
 
-Meteor.Rethink = new EventEmitter();
-
 _Rethink = function(url) {
   var self = this;
   self.collection_queue = [];
@@ -75,9 +73,11 @@ _Rethink.prototype.insert = function(tableName, document) {
   } finally {
     write.committed();
   }
-
-  r.table(self.tableName).insert(document).run(self.connection, function(err, cursor) {
+  // this is not where it actually gets inserted -- it gets passed
+  // to the table constructor prototype where it gets sluttily passed
+  // around some more, validated, and then finally called somewhere
+  // I have yet to figure out where....
+  r.table(self.tableName).insert(document).run(self.connection, function(err, cursor) {});
     //there has to be something useful you can do here with the cursor
-  });
 };
 Meteor._Rethink = _Rethink;
