@@ -1,0 +1,564 @@
+{
+  "load": [
+    "app/packages/underscore/underscore.js",
+    "app/packages/meteor/server_environment.js",
+    "app/packages/meteor/helpers.js",
+    "app/packages/meteor/setimmediate.js",
+    "app/packages/meteor/timers.js",
+    "app/packages/meteor/errors.js",
+    "app/packages/meteor/fiber_helpers.js",
+    "app/packages/meteor/dynamics_nodejs.js",
+    "app/packages/meteor/url_server.js",
+    "app/packages/meteor/url_common.js",
+    "app/packages/deps/deps.js",
+    "app/packages/random/random.js",
+    "app/packages/json/json2.js",
+    "app/packages/ejson/ejson.js",
+    "app/packages/ejson/base64.js",
+    "app/packages/logging/logging.js",
+    "app/packages/check/match.js",
+    "app/packages/routepolicy/routepolicy.js",
+    "app/packages/livedata/stream_client_nodejs.js",
+    "app/packages/livedata/stream_client_common.js",
+    "app/packages/livedata/stream_server.js",
+    "app/packages/ordered-dict/ordered_dict.js",
+    "app/packages/minimongo/minimongo.js",
+    "app/packages/minimongo/selector.js",
+    "app/packages/minimongo/modify.js",
+    "app/packages/minimongo/diff.js",
+    "app/packages/minimongo/objectid.js",
+    "app/packages/livedata/writefence.js",
+    "app/packages/livedata/crossbar.js",
+    "app/packages/livedata/livedata_common.js",
+    "app/packages/livedata/livedata_connection.js",
+    "app/packages/livedata/livedata_server.js",
+    "app/packages/livedata/server_convenience.js",
+    "app/packages/mongo-livedata/mongo_driver.js",
+    "app/packages/mongo-livedata/local_collection_driver.js",
+    "app/packages/mongo-livedata/remote_collection_driver.js",
+    "app/packages/mongo-livedata/collection.js",
+    "app/packages/startup/startup_server.js",
+    "app/packages/handlebars/parse.js",
+    "app/packages/past/past.js",
+    "app/packages/autopublish/autopublish.js",
+    "app/packages/insecure/insecure.js",
+    "app/packages/rethink-livedata/rethink.js",
+    "app/packages/rethink-livedata/tables.js",
+    "app/packages/rethink-livedata/minirethink.js",
+    "app/packages/rethink-livedata/local_table_driver.js",
+    "app/packages/rethink-livedata/remote_table_driver.js",
+    "app/leaderboard.js"
+  ],
+  "manifest": [
+    {
+      "path": "static_cacheable/packages/underscore/underscore.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/underscore/underscore.js?ed2d2b960c0e746b3e4f9282d5de66ef7b1a2b4d",
+      "size": 41446,
+      "hash": "ed2d2b960c0e746b3e4f9282d5de66ef7b1a2b4d"
+    },
+    {
+      "path": "static_cacheable/packages/meteor/client_environment.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/meteor/client_environment.js?07a7cfbe7a2389cf9855c7db833f12202a656c6b",
+      "size": 295,
+      "hash": "07a7cfbe7a2389cf9855c7db833f12202a656c6b"
+    },
+    {
+      "path": "static_cacheable/packages/meteor/helpers.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/meteor/helpers.js?2968aa157e0a16667da224b8aa48edb17fbccf7c",
+      "size": 1594,
+      "hash": "2968aa157e0a16667da224b8aa48edb17fbccf7c"
+    },
+    {
+      "path": "static_cacheable/packages/meteor/setimmediate.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/meteor/setimmediate.js?5acde534871be824693ce5e9fb459d5202231cf9",
+      "size": 4252,
+      "hash": "5acde534871be824693ce5e9fb459d5202231cf9"
+    },
+    {
+      "path": "static_cacheable/packages/meteor/timers.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/meteor/timers.js?631f3967e53d6402fe51b98d91d116524a8d5ab9",
+      "size": 1544,
+      "hash": "631f3967e53d6402fe51b98d91d116524a8d5ab9"
+    },
+    {
+      "path": "static_cacheable/packages/meteor/errors.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/meteor/errors.js?2f9f56a39a26a94e81040fcf498523c2b0899761",
+      "size": 1159,
+      "hash": "2f9f56a39a26a94e81040fcf498523c2b0899761"
+    },
+    {
+      "path": "static_cacheable/packages/meteor/fiber_stubs_client.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/meteor/fiber_stubs_client.js?52687e0196bc1d3184ae5ea434a8859275702d94",
+      "size": 1946,
+      "hash": "52687e0196bc1d3184ae5ea434a8859275702d94"
+    },
+    {
+      "path": "static_cacheable/packages/meteor/dynamics_browser.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/meteor/dynamics_browser.js?1e9d974c929e38d6d8ea8263bd877ccd5899f5e8",
+      "size": 1189,
+      "hash": "1e9d974c929e38d6d8ea8263bd877ccd5899f5e8"
+    },
+    {
+      "path": "static_cacheable/packages/meteor/url_common.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/meteor/url_common.js?5952b7cd3adb7254eebc5c7b4d6f299109e9f926",
+      "size": 1409,
+      "hash": "5952b7cd3adb7254eebc5c7b4d6f299109e9f926"
+    },
+    {
+      "path": "static_cacheable/packages/deps/deps.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/deps/deps.js?651e87591167f4286e96438ff2566ba3357bff99",
+      "size": 8242,
+      "hash": "651e87591167f4286e96438ff2566ba3357bff99"
+    },
+    {
+      "path": "static_cacheable/packages/reactive-dict/reactive-dict.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/reactive-dict/reactive-dict.js?5d21884649d88f3102f167c5da0119feb6a9dcfd",
+      "size": 3945,
+      "hash": "5d21884649d88f3102f167c5da0119feb6a9dcfd"
+    },
+    {
+      "path": "static_cacheable/packages/logging/logging.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/logging/logging.js?f3d52175252df63f6ca42efd87b1e36ee79e80d7",
+      "size": 2424,
+      "hash": "f3d52175252df63f6ca42efd87b1e36ee79e80d7"
+    },
+    {
+      "path": "static_cacheable/packages/json/json2.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/json/json2.js?4068ba94410427bc80dc30396ad1390ec4f51064",
+      "size": 17559,
+      "hash": "4068ba94410427bc80dc30396ad1390ec4f51064"
+    },
+    {
+      "path": "static_cacheable/packages/reload/reload.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/reload/reload.js?a0ec82008a44e46e7a1c747c93770ec067fb2e34",
+      "size": 5523,
+      "hash": "a0ec82008a44e46e7a1c747c93770ec067fb2e34"
+    },
+    {
+      "path": "static_cacheable/packages/session/session.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/session/session.js?9f61fabf1261da3078d8c9a3d6b026d7fa1d822d",
+      "size": 393,
+      "hash": "9f61fabf1261da3078d8c9a3d6b026d7fa1d822d"
+    },
+    {
+      "path": "static_cacheable/packages/random/random.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/random/random.js?1f745c752d695b2b3b94a27c6235e8846316876c",
+      "size": 3994,
+      "hash": "1f745c752d695b2b3b94a27c6235e8846316876c"
+    },
+    {
+      "path": "static_cacheable/packages/ejson/ejson.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/ejson/ejson.js?eef238886df67a207c7b11cdaa71ce4381127bcc",
+      "size": 9038,
+      "hash": "eef238886df67a207c7b11cdaa71ce4381127bcc"
+    },
+    {
+      "path": "static_cacheable/packages/ejson/base64.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/ejson/base64.js?e8d8d8b6240833f954dd72a9ecd20f169d305e2c",
+      "size": 2580,
+      "hash": "e8d8d8b6240833f954dd72a9ecd20f169d305e2c"
+    },
+    {
+      "path": "static_cacheable/packages/check/match.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/check/match.js?546c595c1e88b5d5b384e40bac99f2352e1c24bc",
+      "size": 8622,
+      "hash": "546c595c1e88b5d5b384e40bac99f2352e1c24bc"
+    },
+    {
+      "path": "static_cacheable/packages/livedata/sockjs-0.3.4.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/livedata/sockjs-0.3.4.js?6f1db89d6b451d0faf6b7103782d92527931e66a",
+      "size": 78273,
+      "hash": "6f1db89d6b451d0faf6b7103782d92527931e66a"
+    },
+    {
+      "path": "static_cacheable/packages/livedata/stream_client_sockjs.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/livedata/stream_client_sockjs.js?6ef3fd3e8e39c1c357993f6936512726288ad127",
+      "size": 6468,
+      "hash": "6ef3fd3e8e39c1c357993f6936512726288ad127"
+    },
+    {
+      "path": "static_cacheable/packages/livedata/stream_client_common.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/livedata/stream_client_common.js?a74f9a3a7d36dadb0ec5b30b65af7a8f79dfe908",
+      "size": 7136,
+      "hash": "a74f9a3a7d36dadb0ec5b30b65af7a8f79dfe908"
+    },
+    {
+      "path": "static_cacheable/packages/ordered-dict/ordered_dict.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/ordered-dict/ordered_dict.js?9d20cbfd700622083b21692955eb687597453494",
+      "size": 5513,
+      "hash": "9d20cbfd700622083b21692955eb687597453494"
+    },
+    {
+      "path": "static_cacheable/packages/minimongo/minimongo.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/minimongo/minimongo.js?daa88dc39d67b40b11d6d6809d72361f9ef6a760",
+      "size": 31827,
+      "hash": "daa88dc39d67b40b11d6d6809d72361f9ef6a760"
+    },
+    {
+      "path": "static_cacheable/packages/minimongo/selector.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/minimongo/selector.js?5df3e5f6aff1f528708129c076cdbcc66f606745",
+      "size": 21512,
+      "hash": "5df3e5f6aff1f528708129c076cdbcc66f606745"
+    },
+    {
+      "path": "static_cacheable/packages/minimongo/modify.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/minimongo/modify.js?5df378efe2cddb9cc18a685085eb520590ea4237",
+      "size": 9916,
+      "hash": "5df378efe2cddb9cc18a685085eb520590ea4237"
+    },
+    {
+      "path": "static_cacheable/packages/minimongo/diff.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/minimongo/diff.js?9f4db5bd244c6df7ff0309e9ddf2034cf22bb395",
+      "size": 7517,
+      "hash": "9f4db5bd244c6df7ff0309e9ddf2034cf22bb395"
+    },
+    {
+      "path": "static_cacheable/packages/minimongo/objectid.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/minimongo/objectid.js?449554705d48d714bfd83e63d2fe16c2acd7d1d2",
+      "size": 3635,
+      "hash": "449554705d48d714bfd83e63d2fe16c2acd7d1d2"
+    },
+    {
+      "path": "static_cacheable/packages/livedata/livedata_common.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/livedata/livedata_common.js?20aa83bbdcba274f98eeae0ffc1e0659b4ef6436",
+      "size": 5146,
+      "hash": "20aa83bbdcba274f98eeae0ffc1e0659b4ef6436"
+    },
+    {
+      "path": "static_cacheable/packages/livedata/livedata_connection.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/livedata/livedata_connection.js?5d09753571656c685bb10c7970eebfbf23d35ef8",
+      "size": 50631,
+      "hash": "5d09753571656c685bb10c7970eebfbf23d35ef8"
+    },
+    {
+      "path": "static_cacheable/packages/livedata/client_convenience.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/livedata/client_convenience.js?4739936b2a334ad8041c3df27a37a5841b9d9842",
+      "size": 1007,
+      "hash": "4739936b2a334ad8041c3df27a37a5841b9d9842"
+    },
+    {
+      "path": "static_cacheable/packages/mongo-livedata/local_collection_driver.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/mongo-livedata/local_collection_driver.js?2c25c5667de3c5776a11c91f367b1566b5331f38",
+      "size": 503,
+      "hash": "2c25c5667de3c5776a11c91f367b1566b5331f38"
+    },
+    {
+      "path": "static_cacheable/packages/mongo-livedata/collection.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/mongo-livedata/collection.js?682caa185350aa26968d4ffc274579a33922f0e6",
+      "size": 26595,
+      "hash": "682caa185350aa26968d4ffc274579a33922f0e6"
+    },
+    {
+      "path": "static_cacheable/packages/jquery/jquery.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/jquery/jquery.js?225967be9bc20da40a54fcd26f45271aa91162ec",
+      "size": 266911,
+      "hash": "225967be9bc20da40a54fcd26f45271aa91162ec"
+    },
+    {
+      "path": "static_cacheable/packages/domutils/domutils.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/domutils/domutils.js?52c3c7ff9e0acd52ac427a8f103760e222ba2722",
+      "size": 20687,
+      "hash": "52c3c7ff9e0acd52ac427a8f103760e222ba2722"
+    },
+    {
+      "path": "static_cacheable/packages/liverange/liverange.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/liverange/liverange.js?5e6bc5ba11645802c3440658c75fcc2277537dd1",
+      "size": 24065,
+      "hash": "5e6bc5ba11645802c3440658c75fcc2277537dd1"
+    },
+    {
+      "path": "static_cacheable/packages/universal-events/listener.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/universal-events/listener.js?133c05aa3566bf34bab047cb57dbbc2f8da8a2ba",
+      "size": 9464,
+      "hash": "133c05aa3566bf34bab047cb57dbbc2f8da8a2ba"
+    },
+    {
+      "path": "static_cacheable/packages/universal-events/events-w3c.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/universal-events/events-w3c.js?c238463db96da94908959c0fb759501d7630951c",
+      "size": 7543,
+      "hash": "c238463db96da94908959c0fb759501d7630951c"
+    },
+    {
+      "path": "static_cacheable/packages/universal-events/events-ie.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/universal-events/events-ie.js?8a59f7aa706ef44d9cd1f4a8e4fa634a002f6996",
+      "size": 5947,
+      "hash": "8a59f7aa706ef44d9cd1f4a8e4fa634a002f6996"
+    },
+    {
+      "path": "static_cacheable/packages/spark/spark.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/spark/spark.js?4af332696fb84f1c71f2e678ad0a267755b2b828",
+      "size": 42417,
+      "hash": "4af332696fb84f1c71f2e678ad0a267755b2b828"
+    },
+    {
+      "path": "static_cacheable/packages/spark/patch.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/spark/patch.js?e76412b922e47b6c2c1f890e3bc10fd13bdecfef",
+      "size": 22568,
+      "hash": "e76412b922e47b6c2c1f890e3bc10fd13bdecfef"
+    },
+    {
+      "path": "static_cacheable/packages/spark/convenience.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/spark/convenience.js?a22c821d8e74e80f39dc8296223b5cd29520259f",
+      "size": 688,
+      "hash": "a22c821d8e74e80f39dc8296223b5cd29520259f"
+    },
+    {
+      "path": "static_cacheable/packages/spark/utils.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/spark/utils.js?40d08baf40708d6a994db31d99c05aeeab75982d",
+      "size": 1149,
+      "hash": "40d08baf40708d6a994db31d99c05aeeab75982d"
+    },
+    {
+      "path": "static_cacheable/packages/templating/deftemplate.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/templating/deftemplate.js?9369dfa782cc1c8cd4d568925617249ec480b84f",
+      "size": 6732,
+      "hash": "9369dfa782cc1c8cd4d568925617249ec480b84f"
+    },
+    {
+      "path": "static_cacheable/packages/startup/startup_client.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/startup/startup_client.js?ebbfab1ed405df894a65817fe04734afb004a73e",
+      "size": 911,
+      "hash": "ebbfab1ed405df894a65817fe04734afb004a73e"
+    },
+    {
+      "path": "static_cacheable/packages/handlebars/evaluate.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/handlebars/evaluate.js?742a34cf3479d95600582786665b53c0eba4f7d9",
+      "size": 12956,
+      "hash": "742a34cf3479d95600582786665b53c0eba4f7d9"
+    },
+    {
+      "path": "static_cacheable/packages/past/past.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/past/past.js?9d63f0540272dff781aa90af29582be20513c458",
+      "size": 1461,
+      "hash": "9d63f0540272dff781aa90af29582be20513c458"
+    },
+    {
+      "path": "static_cacheable/packages/preserve-inputs/preserve-inputs.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/preserve-inputs/preserve-inputs.js?b78c88404f0eb892b749fbda0a242f33f86ca231",
+      "size": 269,
+      "hash": "b78c88404f0eb892b749fbda0a242f33f86ca231"
+    },
+    {
+      "path": "static_cacheable/packages/rethink-livedata/rethink.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/rethink-livedata/rethink.js?3f591231f0ddc4086811bf81be850dcf20b8c2ed",
+      "size": 2734,
+      "hash": "3f591231f0ddc4086811bf81be850dcf20b8c2ed"
+    },
+    {
+      "path": "static_cacheable/packages/rethink-livedata/tables.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/rethink-livedata/tables.js?e9e34d5a2be5b832f6efafee44e79126eec10517",
+      "size": 11939,
+      "hash": "e9e34d5a2be5b832f6efafee44e79126eec10517"
+    },
+    {
+      "path": "static_cacheable/packages/rethink-livedata/minirethink.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/rethink-livedata/minirethink.js?7e92093bd44c7a41ff7ef6798c349890e897edfe",
+      "size": 2301,
+      "hash": "7e92093bd44c7a41ff7ef6798c349890e897edfe"
+    },
+    {
+      "path": "static_cacheable/packages/rethink-livedata/local_table_driver.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/rethink-livedata/local_table_driver.js?a32dce1662c65fd7b181e26eeee2ba68b37227ac",
+      "size": 440,
+      "hash": "a32dce1662c65fd7b181e26eeee2ba68b37227ac"
+    },
+    {
+      "path": "static_cacheable/packages/rethink-livedata/remote_table_driver.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/rethink-livedata/remote_table_driver.js?8f3a0489e7ff90f8bfd6d2443e3df4275667e391",
+      "size": 475,
+      "hash": "8f3a0489e7ff90f8bfd6d2443e3df4275667e391"
+    },
+    {
+      "path": "static_cacheable/template.leaderboard.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/template.leaderboard.js?9995fd528be6b17d33b33e56c68d82f69b318020",
+      "size": 1589,
+      "hash": "9995fd528be6b17d33b33e56c68d82f69b318020"
+    },
+    {
+      "path": "static_cacheable/leaderboard.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/leaderboard.js?9d4cd6abd64a4f7958f47944d1390294ba81379e",
+      "size": 2543,
+      "hash": "9d4cd6abd64a4f7958f47944d1390294ba81379e"
+    },
+    {
+      "path": "static_cacheable/leaderboard.css",
+      "where": "client",
+      "type": "css",
+      "cacheable": true,
+      "url": "/leaderboard.css?ea9d9d118c9fa652e7f41f77128a6b0d4f0b910e",
+      "size": 965,
+      "hash": "ea9d9d118c9fa652e7f41f77128a6b0d4f0b910e"
+    },
+    {
+      "path": "app.html",
+      "where": "internal",
+      "hash": "8dbe179566e786ce3d66f7a2affd488c9d57cb3e"
+    }
+  ],
+  "release": "0.6.4.1"
+}

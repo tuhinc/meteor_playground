@@ -28,16 +28,14 @@ Meteor.Table = function(tableName, options) {
   self._table = options._driver.open(tableName);
   self._tableName = tableName;
   self._defineMutationMethods();
+  console.log("isClient? ", Meteor.isClient, "name: ", tableName, " + options: ", options);
 };
 
-console.log(Meteor.Table);
 _.extend(Meteor.Table.prototype, {
-
   get: function(string, callback) {
     var self = this;
     // self.connection = Meteor.Rethink.connection;
     r.table(self.tableName).get(string).run(self.connection, function(err, cursor) {
-      console.log(cursor);
     });
   }
 });
@@ -140,9 +138,91 @@ _.each(["insert"], function(name) {
   };
 });
 
+/// Notes from Meteor -->
+///
+/// Remote methods and access control.
+///
+
+// Restrict default mutators on table. allow() and deny() take the
+// same options:
+//
+// options.insert {Function(userId, doc)}
+//   return true to allow/deny adding this document
+//
+// options.update {Function(userId, docs, fields, modifier)}
+//   return true to allow/deny updating these documents.
+//   `fields` is passed as an array of fields that are to be modified
+//
+// options.remove {Function(userId, docs)}
+//   return true to allow/deny removing these documents
+//
+// options.fetch {Array}
+//   Fields to fetch for these validators. If any call to allow or deny
+//   does not have this option then all fields are loaded.
+//
+// allow and deny can be called multiple times. The validators are
+// evaluated as follows:
+// - If neither deny() nor allow() has been called on the collection,
+//   then the request is allowed if and only if the "insecure" smart
+//   package is in use.
+// - Otherwise, if any deny() function returns true, the request is denied.
+// - Otherwise, if any allow() function returns true, the request is allowed.
+// - Otherwise, the request is denied.
+//
+// Meteor may call your deny() and allow() functions in any order, and may not
+// call all of them if it is able to make a decision without calling them all
+// (so don't include side effects).
+
+(function() {
+  var addValidator = function(allowOrDeny, options) {
+    // validate keys
+    var VALID_KEYS = ['insert', 'update', 'remove', 'fetch', 'transform'];
+    _.each(_.keys(options), function(key) {
+      if (!_.contains(VALID_KEYS, key)) {
+        throw new Error(allowOrDeny + ": Invalid key: " + key);
+      }
+    });
+
+    var self = this;
+    self._restricted = true;
+    console.log(options);
+    _.each(['insert', 'update', 'remove'], function (name) {
+      if (options[name]) {
+        if (!(options[name] instanceof Function)) {
+          throw new Error(allowOrDeny + ": Value for `" + name + "` must be a function");
+        }
+        if (self._transform) {
+          options[name].transform = self._transform;
+        }
+        if (options.transform) {
+          options[name].transform = Deps._makeNonreactive(options.transform);
+        }
+        self._validators[name][allowOrDeny].push(options[name]);
+      }
+    });
+
+    // Only update the fetch fields if we're passed things that affect
+    // fetching. This way allow({}) and allow({insert: f}) don't result in
+    // setting fetchAllFields
+    if (options.update || options.remove || options.fetch) {
+      if (options.fetch && !(options.fetch instanceof Array)) {
+        throw new Error(allowOrDeny + ": Value for `fetch` must be an array");
+      }
+      self._updateFetch(options.fetch);
+    }
+  };
+
+  Meteor.Table.prototype.allow = function(options) {
+    addValidator.call(this, 'allow', options);
+  };
+  Meteor.Table.prototype.deny = function(options) {
+    addValidator.call(this, 'deny', options);
+  };
+})();
+
 Meteor.Table.prototype._defineMutationMethods = function() {
   var self = this;
-  console.log(self._tableName);
+  console.log('tableName: ' + self._tableName);
   // set to true once we call any allow or deny methods. If true, use
   // allow/deny semantics. If false, use insecure mode semantics.
   self._restricted = false;
@@ -160,6 +240,7 @@ Meteor.Table.prototype._defineMutationMethods = function() {
   if (!self._tableName) {
     return; //anonymous collection
   }
+  console.log("simulation?" + this.isSimulation)
   self._prefix = '/rethink/' + self._tableName + '/';
   //and here we go -- mutation methods
   if (self._connection) {
@@ -168,7 +249,8 @@ Meteor.Table.prototype._defineMutationMethods = function() {
       m[self._prefix + method] = function (/* ... */) {
         try {
           if (this.isSimulation) {
-
+            console.log("yes it's true!");
+            console.log(self._table);
             // Because this is a client simulation, you can do any mutation
             // (even with a complex selector)
             self._table[method].apply(
@@ -216,6 +298,26 @@ Meteor.Table.prototype._defineMutationMethods = function() {
       self._connection.methods(m);
     }
   }
+};
+
+Meteor.Table.prototype._validatedInsert = function(userId, doc) {
+  var self = this;
+
+  // call user validators.
+  // Any deny returns true means denied
+  if (_.any(self._validators.insert.deny, function(validator) {
+    return validator(userId, docToValidate(validator, doc));
+  })) {
+    throw new Meteor.Error(403, "Acccess denied");
+  }
+  // Any allow returns true means proceed. Throw error if they all fail.
+  if (_.all(self._validators.insert.allow, function(validator) {
+    return !validator(userId, docToValidate(validator, doc));
+  })) {
+    throw new Meteor.Error(403, "Access denied");
+  }
+  console.log("wtf i made it");
+  self._collection.insert.call(self._collection, doc);
 };
 setTimeout(function() {var tuhin = new Meteor.Table("tuhin");}, 500);
 
