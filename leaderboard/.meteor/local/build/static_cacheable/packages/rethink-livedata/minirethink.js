@@ -29,6 +29,55 @@ LocalTable = function() {
   this.paused = false;
 };
 
+// ok so we have the get
+
+LocalTable.prototype.get = function ()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 LocalTable.prototype.insert = function(doc) {
   var self = this;
 
