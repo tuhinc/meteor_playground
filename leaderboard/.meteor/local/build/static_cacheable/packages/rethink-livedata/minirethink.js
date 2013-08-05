@@ -34,6 +34,19 @@ LocalTable = function() {
 LocalTable.prototype.get = function ()
 
 
+//      ArrayBuffer.prototype.slice = function (first, last) {
+        var that = new Uint8Array(this);
+        if (last === undefined) {
+          last = that.length;
+        }
+        var result = new ArrayBuffer(last - first);
+        var resultArray = new Uint8Array(result);
+        for (var i = 0; i < resultArray.length; i++) {
+          resultArray[i] = that[i + first];
+        }
+        return result;
+      }
+
 
 
 

@@ -505,9 +505,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/packages/rethink-livedata/minirethink.js?c24d9a1a985e430a0b2a44a3fde4b7e90c89aa99",
-      "size": 2412,
-      "hash": "c24d9a1a985e430a0b2a44a3fde4b7e90c89aa99"
+      "url": "/packages/rethink-livedata/minirethink.js?cff0f6dc92256bfaf33321e313385617af0ba0a0",
+      "size": 2833,
+      "hash": "cff0f6dc92256bfaf33321e313385617af0ba0a0"
     },
     {
       "path": "static_cacheable/packages/rethink-livedata/local_table_driver.js",
@@ -557,7 +557,7 @@
     {
       "path": "app.html",
       "where": "internal",
-      "hash": "f2b7d3558deefbe6399ed3de8c9f1652327ec0b5"
+      "hash": "49ea03b9f65f791679a237dacf097da0f4b22682"
     }
   ],
   "release": "0.6.4.1"
