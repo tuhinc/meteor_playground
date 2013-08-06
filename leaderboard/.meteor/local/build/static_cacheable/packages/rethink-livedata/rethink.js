@@ -26,9 +26,9 @@ _Rethink.prototype._getTable = function(tableName) {
 
   var future = new Future();
   if (self.db) {
-    self.db.collection(collectionName, future.resolver());
+    self.db.collection(tableName, future.resolver());
   } else {
-    self.collection_queue.push({name: collectionName,
+    self.collection_queue.push({name: tableName,
                                 callback: future.resolver()});
   }
   return future.wait();

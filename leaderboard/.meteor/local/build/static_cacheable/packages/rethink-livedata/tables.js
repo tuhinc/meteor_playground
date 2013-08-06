@@ -6,6 +6,7 @@
 // Meteor.Rethink.on('ready', function () {console.log(Meteor.Rethink.connection);});
 Meteor.Table = function(tableName, options) {
   var self = this;
+  console.log('what up');
   if (! (self instanceof Meteor.Table)) {
     throw new Error('use "new" to construct a Meteor.Table');
   }
@@ -28,16 +29,15 @@ Meteor.Table = function(tableName, options) {
   self._table = options._driver.open(tableName);
   self._tableName = tableName;
   self._defineMutationMethods();
-  console.log("isClient? ", Meteor.isClient, "name: ", tableName, " + options: ", options);
 };
 
 _.extend(Meteor.Table.prototype, {
-  get: function(string, callback) {
-    var self = this;
-    // self.connection = Meteor.Rethink.connection;
-    r.table(self.tableName).get(string).run(self.connection, function(err, cursor) {
-    });
-  }
+  // get: function(string, callback) {
+  //   var self = this;
+  //   // self.connection = Meteor.Rethink.connection;
+  //   r.table(self.tableName).get(string).run(self.connection, function(err, cursor) {
+  //   });
+  // }
 });
 
 //TODO:: add functionality for other functions such as update / remove
@@ -185,7 +185,6 @@ _.each(["insert"], function(name) {
 
     var self = this;
     self._restricted = true;
-    console.log(options);
     _.each(['insert', 'update', 'remove'], function (name) {
       if (options[name]) {
         if (!(options[name] instanceof Function)) {
@@ -220,6 +219,10 @@ _.each(["insert"], function(name) {
   };
 })();
 
+Meteor.Table.prototype._isInsecure = function() {
+  return !!this._insecure;
+};
+
 Meteor.Table.prototype._defineMutationMethods = function() {
   var self = this;
   console.log('tableName: ' + self._tableName);
@@ -230,7 +233,7 @@ Meteor.Table.prototype._defineMutationMethods = function() {
   // which means use the global Meteor.Collection.insecure.  This
   // property can be overriden by tests or packages wishing to change
   // insecure mode behavior of their collections.
-  self._insecure = undefined;
+  self._insecure = true;
 
   self._validators = {
     insert: {allow: [], deny: []},
@@ -240,7 +243,6 @@ Meteor.Table.prototype._defineMutationMethods = function() {
   if (!self._tableName) {
     return; //anonymous collection
   }
-  console.log("simulation?" + this.isSimulation)
   self._prefix = '/rethink/' + self._tableName + '/';
   //and here we go -- mutation methods
   if (self._connection) {
@@ -249,8 +251,6 @@ Meteor.Table.prototype._defineMutationMethods = function() {
       m[self._prefix + method] = function (/* ... */) {
         try {
           if (this.isSimulation) {
-            console.log("yes it's true!");
-            console.log(self._table);
             // Because this is a client simulation, you can do any mutation
             // (even with a complex selector)
             self._table[method].apply(
@@ -316,10 +316,10 @@ Meteor.Table.prototype._validatedInsert = function(userId, doc) {
   })) {
     throw new Meteor.Error(403, "Access denied");
   }
-  console.log("wtf i made it");
   self._collection.insert.call(self._collection, doc);
 };
 setTimeout(function() {var tuhin = new Meteor.Table("tuhin");}, 500);
+
 
 
 

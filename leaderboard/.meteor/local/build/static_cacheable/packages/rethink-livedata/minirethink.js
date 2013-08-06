@@ -21,6 +21,8 @@ LocalTable = function() {
   //  selector_f, sort_f, (callbacks): functions
   this.queries = {};
 
+  this.chain = [];
+
   // null if not saving originals; a map from id to original document value if
   // saving originals. See comments before saveOriginals().
   this._savedOriginals = null;
@@ -31,69 +33,66 @@ LocalTable = function() {
 
 // ok so we have the get
 
-LocalTable.prototype.get = function ()
+LocalTable.prototype.get = function (string) {
+  var self = this;
 
+  var get = function(string) {
+    return new LocalTable.Cursor(self, string);
+  };
 
-//      ArrayBuffer.prototype.slice = function (first, last) {
-        var that = new Uint8Array(this);
-        if (last === undefined) {
-          last = that.length;
+  self.chain.push(get);
+  return self;
+};
+
+LocalTable.Cursor = function (table, selector, options) {
+  var self = this;
+  var doc;
+
+  self.table = table;
+
+  self.db_objects = null;
+  self.cursor_pos = 0;
+
+  if (typeof Deps !== "undefined") {
+    self.reactive = (options.reactive === undefined) ? true : options.reactive;
+  }
+};
+
+// handle that comes back from observe.
+
+LocalTable.LiveResultsSet = function () {};
+
+// add support for observe
+_.extend(LocalTable.Cursor.prototype, {
+  observeChanges: function (options) {
+    var self = this;
+
+    var handle = new LocalTable.LiveResultsSet();
+    _.extend(handle, {
+      collection: self.collection,
+      stop: function() {
+        if (self.reactive) {
+          delete self.table.queries[qid];
         }
-        var result = new ArrayBuffer(last - first);
-        var resultArray = new Uint8Array(result);
-        for (var i = 0; i < resultArray.length; i++) {
-          resultArray[i] = that[i + first];
-        }
-        return result;
       }
+    });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    if (self.reactive && Deps.active) {
+      Deps.onInvalidate(function () {
+        handle.stop();
+      });
+    }
+    // run the observe callbacks resulting from the initial contents
+    // before we leave the observe.
+  }
+});
 
 
 
 LocalTable.prototype.insert = function(doc) {
   var self = this;
-
+  console.log(self);
+  console.log("hi");
   if (!_.has(doc, '_id')) {
     doc._id = LocalTable._useOID ? new LocalTable._ObjectID() : Random.id();
   }
@@ -102,8 +101,8 @@ LocalTable.prototype.insert = function(doc) {
   if (_.has(self.docs, doc._id)) {
     throw new LocalCollection.MinimongoError("Duplicate _id '" + doc._id + "'");
   }
-  // do we need this line of code?
-  // self._saveOriginal(id, undefined);
+
+  //omg. insert that mother fucker!
   self.docs[id] = doc;
 
   var queriesToRecompute = [];
@@ -112,9 +111,91 @@ LocalTable.prototype.insert = function(doc) {
   for (var qid in self.queries) {
     var query = self.queries[qid];
     if (query.selector_f(doc)) {
+      if (query.cursor.skip || query.cursor.limit) {
+        queriesToRecompute.push(qid);
+      } else {
+        LocalTable._insertInResults(query, doc);
+      }
     }
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// LocalTable.Cursor.prototype.rewind = function () {
+//   var self = this;
+//   self.db_objects = null;
+//   self.cursor_pos = 0;
+// };
+
+// LocalTable.prototype.run = function(callback) {
+//   var self = this;
+//   _.each(self.queries, function(query) {
+//     query.apply(self, arguments);
+//   });
+// };
+
+// LocalTable.prototype.insert = function (doc) {
+//   var self = this;
+//   console.log('hello');
+// };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 LocalTable.prototype._saveOriginal = function (id, doc) {
   var self = this;

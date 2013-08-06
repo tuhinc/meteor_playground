@@ -487,36 +487,36 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/packages/rethink-livedata/rethink.js?3f591231f0ddc4086811bf81be850dcf20b8c2ed",
-      "size": 2734,
-      "hash": "3f591231f0ddc4086811bf81be850dcf20b8c2ed"
+      "url": "/packages/rethink-livedata/rethink.js?41517f8a4273a381b11e8a9374d55d3c1039cf37",
+      "size": 2724,
+      "hash": "41517f8a4273a381b11e8a9374d55d3c1039cf37"
     },
     {
       "path": "static_cacheable/packages/rethink-livedata/tables.js",
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/packages/rethink-livedata/tables.js?e9e34d5a2be5b832f6efafee44e79126eec10517",
-      "size": 11939,
-      "hash": "e9e34d5a2be5b832f6efafee44e79126eec10517"
+      "url": "/packages/rethink-livedata/tables.js?d2bc3fbb9d1aef6f79220081b010fc5c7ee19d93",
+      "size": 11780,
+      "hash": "d2bc3fbb9d1aef6f79220081b010fc5c7ee19d93"
     },
     {
       "path": "static_cacheable/packages/rethink-livedata/minirethink.js",
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/packages/rethink-livedata/minirethink.js?cff0f6dc92256bfaf33321e313385617af0ba0a0",
-      "size": 2833,
-      "hash": "cff0f6dc92256bfaf33321e313385617af0ba0a0"
+      "url": "/packages/rethink-livedata/minirethink.js?5a1c718263cfb940018e58aa4ede051f8f844cce",
+      "size": 4146,
+      "hash": "5a1c718263cfb940018e58aa4ede051f8f844cce"
     },
     {
       "path": "static_cacheable/packages/rethink-livedata/local_table_driver.js",
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/packages/rethink-livedata/local_table_driver.js?a32dce1662c65fd7b181e26eeee2ba68b37227ac",
-      "size": 440,
-      "hash": "a32dce1662c65fd7b181e26eeee2ba68b37227ac"
+      "url": "/packages/rethink-livedata/local_table_driver.js?6ed15c78e0248769ed06daf17b2664c7b37fedee",
+      "size": 463,
+      "hash": "6ed15c78e0248769ed06daf17b2664c7b37fedee"
     },
     {
       "path": "static_cacheable/packages/rethink-livedata/remote_table_driver.js",
@@ -557,7 +557,7 @@
     {
       "path": "app.html",
       "where": "internal",
-      "hash": "49ea03b9f65f791679a237dacf097da0f4b22682"
+      "hash": "77c3c90c8b513701829fa47f90abb6ede413a8bb"
     }
   ],
   "release": "0.6.4.1"
