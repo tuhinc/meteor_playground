@@ -7,7 +7,7 @@ var Future = Npm.require(path.join('fibers', 'future'));
 
 _Rethink = function(url) {
   var self = this;
-  self.collection_queue = [];
+  self.table_queue = [];
   self.liveResultsSets = {};
 
   r.connect({
@@ -16,7 +16,16 @@ _Rethink = function(url) {
     db: 'test'
   }, function(err, connection){
      if(err) throw err;
+     console.log('connected');
      self.connection = connection;
+  });
+};
+
+_Rethink.prototype._createTable = function(tableName) {
+  var self = this;
+  console.log(self.connection);
+  r.db('test').tableCreate(tableName).run(self.connection, function(err, cursor) {
+    console.log('success!', err);
   });
 };
 
@@ -46,7 +55,6 @@ _Rethink.prototype._maybeBeginWrite = function () {
 };
 
 //////////// Public API //////////
-
 
 //todo -- provide support for durability / returnVals arguments
 _Rethink.prototype.insert = function(tableName, document) {

@@ -6,7 +6,6 @@
 // Meteor.Rethink.on('ready', function () {console.log(Meteor.Rethink.connection);});
 Meteor.Table = function(tableName, options) {
   var self = this;
-  console.log('what up');
   if (! (self instanceof Meteor.Table)) {
     throw new Error('use "new" to construct a Meteor.Table');
   }
@@ -25,8 +24,10 @@ Meteor.Table = function(tableName, options) {
       options._driver = Meteor._LocalTableDriver;
     }
   }
-
   self._table = options._driver.open(tableName);
+  if (Meteor.isServer) {
+    Meteor._RemoteTableDriver.rethink._createTable(tableName);
+  }
   self._tableName = tableName;
   self._defineMutationMethods();
 };
@@ -225,7 +226,6 @@ Meteor.Table.prototype._isInsecure = function() {
 
 Meteor.Table.prototype._defineMutationMethods = function() {
   var self = this;
-  console.log('tableName: ' + self._tableName);
   // set to true once we call any allow or deny methods. If true, use
   // allow/deny semantics. If false, use insecure mode semantics.
   self._restricted = false;

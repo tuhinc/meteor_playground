@@ -16,4 +16,4 @@ _.extend(Meteor._RemoteTableDriver.prototype, {
   }
 });
 
-Meteor._RemoteTableDriver = new Meteor._RemoteTableDriver();
+Meteor._RemoteTableDriver = new Meteor._RemoteTableDriver;

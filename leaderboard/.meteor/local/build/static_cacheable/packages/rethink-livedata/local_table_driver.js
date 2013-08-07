@@ -6,7 +6,6 @@
 _.extend(Meteor._LocalTableDriver.prototype, {
   open: function (name) {
     var self = this;
-    console.log('hi');
     if (!name)
       return new LocalTable();
     if (!(name in self.tables))
@@ -16,6 +15,6 @@ _.extend(Meteor._LocalTableDriver.prototype, {
 });
 
 // singleton
-Meteor._LocalTableDriver = new Meteor._LocalTableDriver();
+Meteor._LocalTableDriver = new Meteor._LocalTableDriver;
 
 }).call(this);

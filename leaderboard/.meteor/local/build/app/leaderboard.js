@@ -1,7 +1,9 @@
 // Set up a collection to contain player information. On the server,
 // it is backed by a MongoDB collection named "players".
 Players = new Meteor.Collection("players");
-Johns = new Meteor.Table("john");
+setTimeout(function() {
+  MoreUsers = new Meteor.Table("MoreUsers");
+}, 3000);
 
 
 if (Meteor.isClient) {

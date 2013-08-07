@@ -31,20 +31,69 @@ LocalTable = function() {
   this.paused = false;
 };
 
-// ok so we have the get
 
-LocalTable.prototype.get = function (string) {
+
+Minirethink = function() {
   var self = this;
+  self.queries = [];
+};
 
-  var get = function(string) {
-    return new LocalTable.Cursor(self, string);
+// TODO:: This currently doesn't work if you input a string
+// you need to input the actual table
+Minirethink.prototype.table = function(tableName) {
+  var self = this;
+  var table = Meteor._LocalTableDriver.tables[tableName];
+  var selectTable = function(table) {
+
+    return new LocalTable.Cursor(table);
   };
-
-  self.chain.push(get);
+  self.queries.push([selectTable, [table]]);
   return self;
 };
 
-LocalTable.Cursor = function (table, selector, options) {
+Minirethink.prototype.get = function(string) {
+  var self = this;
+  var getSingleRow = function(string) {
+    var results = [];
+    this.forEach(function(doc) {
+      if (doc.name === string) {
+        results.push(doc);
+      }
+    });
+    return results;
+  };
+  self.queries.push([getSingleRow, arguments]);
+  return self;
+};
+
+Minirethink.prototype.run = function(callback) {
+  var self = this;
+  var results;
+  var args;
+  for (var i = 0; i < self.queries.length; i++) {
+    if (i === 0) {
+      var query = self.queries[0][0];
+      args = self.queries[0][1];
+      results = query.apply(window, args);
+      if (self.queries.length === 1) {
+        return results;
+      }
+    } else if (self.queries[i+1]) {
+      args = self.queries[i+1][1];
+      results = self.queries[i+1][0].apply(results, args);
+    } else {
+      args = self.queries[i][1];
+      results = self.queries[i][0].apply(results, args);
+      if (callback) {
+        return callback(results);
+      } else {
+        return results;
+      }
+    }
+  }
+};
+
+LocalTable.Cursor = function (table, name) {
   var self = this;
   var doc;
 
@@ -54,28 +103,114 @@ LocalTable.Cursor = function (table, selector, options) {
   self.cursor_pos = 0;
 
   if (typeof Deps !== "undefined") {
-    self.reactive = (options.reactive === undefined) ? true : options.reactive;
+    self.reactive = true;
   }
 };
 
-// handle that comes back from observe.
+LocalTable.Cursor.prototype.rewind = function () {
+  var self = this;
+  self.db_objects = null;
+  self.cursor_pos = 0;
+};
 
-LocalTable.LiveResultsSet = function () {};
+LocalTable.Cursor.prototype.forEach = function (callback, context) {
+  var self = this;
+  var doc;
+  if (self.db_objects === null) {
+    self.db_objects = self._getRawObjects(true);
+  }
+  if (self.reactive) {
+    self._depend({
+      addedBefore: true,
+      removed: true,
+      changed: true,
+      movedBefore: true
+    });
+  }
 
-// add support for observe
+  while (self.cursor_pos < _.keys(self.db_objects).length) {
+    var elt = EJSON.clone(self.db_objects[self.cursor_pos++]);
+    if (!context) {
+      callback(elt);
+    } else {
+      callback.call(context, elt);
+    }
+  }
+};
+
+LocalTable.Cursor.prototype._depend = function (changers) {
+  var self = this;
+
+  if (Deps.active) {
+    var v = new Deps.Dependency();
+    v.depend();
+    var notifyChange = _.bind(v.changed, v);
+
+    var options = {_suppress_initial: true};
+    _.each(['added', 'changed', 'removed', 'addedBefore', 'movedBefore'],
+      function (fnName) {
+        if (changers[fnName]) {
+          options[fnName] = notifyChange;
+        }
+      });
+
+    // observeChanges will stop() when this computation is invalidated
+    self.observeChanges(options);
+  }
+};
+
 _.extend(LocalTable.Cursor.prototype, {
   observeChanges: function (options) {
     var self = this;
 
-    var handle = new LocalTable.LiveResultsSet();
-    _.extend(handle, {
-      collection: self.collection,
-      stop: function() {
-        if (self.reactive) {
-          delete self.table.queries[qid];
-        }
+    var query = {
+      results_snapshot: null,
+      cursor: self,
+      observeChanges: options.observeChanges
+    };
+    var qid;
+    if (self.reactive) {
+      qid = self.collection.next_qid++;
+      self.table.queries[qid] = query;
+    }
+    query.results = self._getRawObjects();
+    if (self.collection.paused) {
+      query.results_snapshot = {};
+    }
+
+    // wrap callbacks we were passed. callbacks only fire when not paused
+    // and are never undefined (except that query.moved is undefined for
+    // unordered callbacks).
+
+    // furthermore, callbacks enqueue until the operation we're working on
+    // is done.
+    var wrapCallback = function (f) {
+      if (!f) {
+        return function () {};
       }
-    });
+      return function (/* args */) {
+        var context = this;
+        var args = arguments;
+        if (!self.table.paused) {
+          self.table._observeQueue.queueTask(function() {
+            f.apply(context, args);
+          });
+        }
+      };
+    };
+    query.added = wrapCallback(options.added);
+    query.changed = wrapCallback(options.changed);
+    query.removed = wrapCallback(options.removed);
+
+    var handle = new LocalTable.LiveResultsSet();
+      _.extend(handle, {
+        collection: self.collection,
+        stop: function() {
+          if (self.reactive) {
+            delete self.table.queries[qid];
+          }
+        }
+      });
 
     if (self.reactive && Deps.active) {
       Deps.onInvalidate(function () {
@@ -84,15 +219,40 @@ _.extend(LocalTable.Cursor.prototype, {
     }
     // run the observe callbacks resulting from the initial contents
     // before we leave the observe.
+    self.table._observeQueue.drain();
+
+    return handle;
   }
 });
 
+LocalTable.Cursor.prototype._getRawObjects = function () {
+  var self = this;
+  var results = [];
+
+  for (var id in self.table.docs) {
+    var doc = self.table.docs[id];
+    results.push(doc);
+  }
+
+  return results;
+};
+
+
+
+
+
+
+
+
+
+// handle that comes back from observe.
+
+LocalTable.LiveResultsSet = function () {};
 
 
 LocalTable.prototype.insert = function(doc) {
   var self = this;
   console.log(self);
-  console.log("hi");
   if (!_.has(doc, '_id')) {
     doc._id = LocalTable._useOID ? new LocalTable._ObjectID() : Random.id();
   }
@@ -122,77 +282,17 @@ LocalTable.prototype.insert = function(doc) {
 
 
 
+// find returns a cursor. It does not immediately access the database
+// or return documents. Cursors provide fetch to return all matching
+// documents, map and forEach to iterate over all matching documents,
+// and observe and observeChanges to register callbacks when the set of matching
+// documents changes
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// LocalTable.Cursor.prototype.rewind = function () {
-//   var self = this;
-//   self.db_objects = null;
-//   self.cursor_pos = 0;
-// };
-
-// LocalTable.prototype.run = function(callback) {
-//   var self = this;
-//   _.each(self.queries, function(query) {
-//     query.apply(self, arguments);
-//   });
-// };
-
-// LocalTable.prototype.insert = function (doc) {
-//   var self = this;
-//   console.log('hello');
-// };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Cursors are a reactive data source. The first time you retrieve a cursor's
+// documents with fetch, map, or forEach inside a reactive computation (eg a template
+// or an autorun), Meteor will register a dependency on the underlying data.
+// Any change to the collection that changes the documents in a cursor will trigger
+// a recomputation.
 
 
 
