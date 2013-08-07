@@ -3,7 +3,13 @@
 Players = new Meteor.Collection("players");
 setTimeout(function() {
   MoreUsers = new Meteor.Table("MoreUsers");
-}, 3000);
+}, 500);
+
+setTimeout(function() {
+  if (Meteor.isServer) {
+        MoreUsers.insert({name: "tuhin"});
+    }
+}, 2000);
 
 
 if (Meteor.isClient) {

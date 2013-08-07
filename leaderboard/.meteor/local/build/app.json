@@ -487,9 +487,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/packages/rethink-livedata/tables.js?b7efa1f662e2baaab4dc75d95d06a88c18216032",
-      "size": 11797,
-      "hash": "b7efa1f662e2baaab4dc75d95d06a88c18216032"
+      "url": "/packages/rethink-livedata/tables.js?3ce9fa3b24df237f04baa5f9d77d339a30e4ed3c",
+      "size": 12063,
+      "hash": "3ce9fa3b24df237f04baa5f9d77d339a30e4ed3c"
     },
     {
       "path": "static_cacheable/packages/rethink-livedata/minirethink.js",
@@ -510,15 +510,6 @@
       "hash": "5ec3f18a314e7c57d84a1b6969a230b0252474a7"
     },
     {
-      "path": "static_cacheable/packages/rethink-livedata/remote_table_driver.js",
-      "where": "client",
-      "type": "js",
-      "cacheable": true,
-      "url": "/packages/rethink-livedata/remote_table_driver.js?efa53cff6b7f72f9715925564839ff6b79b1347b",
-      "size": 473,
-      "hash": "efa53cff6b7f72f9715925564839ff6b79b1347b"
-    },
-    {
       "path": "static_cacheable/template.leaderboard.js",
       "where": "client",
       "type": "js",
@@ -532,9 +523,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/leaderboard.js?387169ecd8334d0230d28619b2d7415f797951d1",
-      "size": 2588,
-      "hash": "387169ecd8334d0230d28619b2d7415f797951d1"
+      "url": "/leaderboard.js?e97c469fbbbae22e355a6cbe1726132799a776bb",
+      "size": 2696,
+      "hash": "e97c469fbbbae22e355a6cbe1726132799a776bb"
     },
     {
       "path": "static_cacheable/leaderboard.css",
@@ -548,7 +539,7 @@
     {
       "path": "app.html",
       "where": "internal",
-      "hash": "270cb79fc64e3f92e68aa6c285a3f93b926bdad5"
+      "hash": "9d606f213e7bdc9e173fc4087c54f7be221bc1d8"
     }
   ],
   "release": "0.6.4.1"

@@ -4,6 +4,9 @@
 // var Fibers = Npm.require('fibers');
 // var Future = Npm.require('fibers/future');
 // Meteor.Rethink.on('ready', function () {console.log(Meteor.Rethink.connection);});
+// export NODE_OPTIONS='--debug';
+
+
 Meteor.Table = function(tableName, options) {
   var self = this;
   if (! (self instanceof Meteor.Table)) {
@@ -49,6 +52,13 @@ _.each(["insert"], function(name) {
     var args = _.toArray(arguments);
     var callback;
     var ret;
+    if (Meteor.isServer) {
+      console.log('im the server and im the insert function in Meteor.Table"s prototype');
+    }
+
+    if (Meteor.isClient) {
+      console.log('im the server and im the insert function in Meteor.Table"s prototype');
+    }
 
     if (args.length && args[args.length - 1] instanceof Function)
       callback = args.pop();
@@ -121,7 +131,9 @@ _.each(["insert"], function(name) {
 
     } else {
       try {
+        console.log('1')
         self._table[name].apply(self._table, args);
+        console.log('2');
       } catch (error) {
         if (callback) {
           callback(error);
@@ -318,7 +330,6 @@ Meteor.Table.prototype._validatedInsert = function(userId, doc) {
   }
   self._collection.insert.call(self._collection, doc);
 };
-setTimeout(function() {var tuhin = new Meteor.Table("tuhin");}, 500);
 
 
 

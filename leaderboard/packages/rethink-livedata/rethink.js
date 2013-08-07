@@ -23,7 +23,6 @@ _Rethink = function(url) {
 
 _Rethink.prototype._createTable = function(tableName) {
   var self = this;
-  console.log(self.connection);
   r.db('test').tableCreate(tableName).run(self.connection, function(err, cursor) {
     console.log('success!', err);
   });
@@ -37,7 +36,7 @@ _Rethink.prototype._getTable = function(tableName) {
   if (self.db) {
     self.db.collection(tableName, future.resolver());
   } else {
-    self.collection_queue.push({name: tableName,
+    self.table_queue.push({name: tableName,
                                 callback: future.resolver()});
   }
   return future.wait();
@@ -45,7 +44,7 @@ _Rethink.prototype._getTable = function(tableName) {
 
 _Rethink.prototype._maybeBeginWrite = function () {
     var self = this;
-    var fence = Meteor._CurrentWriteFence.get();
+    // var fence = Meteor._CurrentWriteFence.get();
     if (fence) {
       return fence.beginWrite();
     }
@@ -56,30 +55,32 @@ _Rethink.prototype._maybeBeginWrite = function () {
 
 //////////// Public API //////////
 
-//todo -- provide support for durability / returnVals arguments
+//TODO -- provide support for durability / returnVals arguments
+
+// Insert returns an object that contains the following attributes:
+
+//     inserted - the number of documents that were succesfully inserted;
+//     replaced - the number of documents that were updated when upsert is used;
+//     unchanged - the number of documents that would have been modified, except that the new value was the same as the old value when doing an upsert;
+//     errors - the number of errors encountered while inserting;
+//     if errors where encountered while inserting, first_error contains the text of the first error;
+//     generated_keys - a list of generated primary key values;
+//     deleted and skipped - 0 for an insert operation.
+
 _Rethink.prototype.insert = function(tableName, document) {
   var self = this;
+  console.log('insert function called on the server side');
   if (!document._id) {
     document._id = Random.id();
   }
-  // Insert returns an object that contains the following attributes:
-
-  //     inserted - the number of documents that were succesfully inserted;
-  //     replaced - the number of documents that were updated when upsert is used;
-  //     unchanged - the number of documents that would have been modified, except that the new value was the same as the old value when doing an upsert;
-  //     errors - the number of errors encountered while inserting;
-  //     if errors where encountered while inserting, first_error contains the text of the first error;
-  //     generated_keys - a list of generated primary key values;
-  //     deleted and skipped - 0 for an insert operation.
 
   var write = self._maybeBeginWrite();
 
   try {
     var table = self._getTable(tableName);
     //table should equal r.table(self.tableName);
-    table.insert();
-  } finally {
-    write.committed();
+  } catch(err) {
+    throw new Meteor.Error(500, err.message);
   }
   // this is not where it actually gets inserted -- it gets passed
   // to the table constructor prototype where it gets sluttily passed

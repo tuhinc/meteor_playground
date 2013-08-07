@@ -1,6 +1,6 @@
 Meteor._RemoteTableDriver = function(rethink_url) {
   var self = this;
-  self.rethink = new Meteor._Rethink(rethink_url);
+  self.rethink = new _Rethink(rethink_url);
 };
 
 _.extend(Meteor._RemoteTableDriver.prototype, {
