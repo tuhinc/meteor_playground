@@ -9,7 +9,7 @@ This is a Smart Package that provides RethinkDB support for Meteor
 
 > Disclaimer: This is still a work-in-progress! Full functionality has not yet been implemented. There are definitely bugs! :)
 
-### Install
+# Install
 
 Install RethinkDB from Atmosphere
     
@@ -21,7 +21,7 @@ Install From Git (If you are not using Meteorite)
     #make sure you created the packages folder
     git submodule add https://github.com/tuhinc/meteor_playground.git packages/rethink-live-data
 
-### Usage
+# Usage
 
 ## Tables
 
@@ -72,7 +72,7 @@ eg:-
   
     >Lazily iterate over the result set one element at a time.
   
-# map
+### map
 
 eg:-
 
@@ -80,7 +80,7 @@ eg:-
   
     >Transform each element of the sequence by applying the given mapping function.
 
-# fetch
+### fetch
 
 eg:-
 
@@ -88,7 +88,7 @@ eg:-
   
     >Returns an array of all documents in the cursor
 
-# count
+### count
 
 eg:-
 
@@ -96,7 +96,7 @@ eg:-
   
     >Transform each element of the sequence by applying the given mapping function.
   
-# hasNext
+### hasNext
 
 eg:-
 
