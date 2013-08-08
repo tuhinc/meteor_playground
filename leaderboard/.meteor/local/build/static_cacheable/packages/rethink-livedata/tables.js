@@ -5,8 +5,9 @@
 // var Future = Npm.require('fibers/future');
 // Meteor.Rethink.on('ready', function () {console.log(Meteor.Rethink.connection);});
 // export NODE_OPTIONS='--debug';
-
-
+Meteor._LivedataServer.prototype.publish = function() {
+  console.log('hello');
+};
 Meteor.Table = function(tableName, options) {
   var self = this;
   if (! (self instanceof Meteor.Table)) {
@@ -16,6 +17,10 @@ Meteor.Table = function(tableName, options) {
     connection: undefined,
     _driver: undefined
   }, options);
+
+  self._makeNewID = function () {
+    return Random.id();
+  };
 
   self._connection = tableName && (options.connection ||
                                   (Meteor.isClient ?
@@ -55,13 +60,12 @@ _.each(["insert"], function(name) {
     if (Meteor.isServer) {
       console.log('im the server and im the insert function in Meteor.Table"s prototype');
     }
-
     if (Meteor.isClient) {
-      console.log('im the server and im the insert function in Meteor.Table"s prototype');
+      console.log('im the client and im the insert function in Meteor.Table"s prototype');
     }
-
-    if (args.length && args[args.length - 1] instanceof Function)
+    if (args.length && args[args.length - 1] instanceof Function) {
       callback = args.pop();
+    }
 
     if (Meteor.isClient && !callback) {
       // (from Meteor -->) Client can't block, so it can't report errors by exception,
@@ -75,8 +79,9 @@ _.each(["insert"], function(name) {
         }
       };
     }
-
+    console.log('made it here');
     if (name === "insert") {
+      console.log('im here1');
       if (!args.length) {
         throw new Error("insert requires an argument!");
       }
@@ -84,12 +89,14 @@ _.each(["insert"], function(name) {
       // first make a shallow copy of the document
       args[0] = _.extend({}, args[0]);
       if ('_id' in args[0]) {
+        console.log('im here2');
         ret = args[0]._id;
         if (!(typeof ret === 'string' || ret instanceof Meteor.Collection.ObjectID)) {
           throw new Error("Meteor requires document _id fields to be strings or ObjectIDs");
-        } else {
+        } 
+      } else {
+          console.log('about to make new id');
           ret = args[0]._id = self._makeNewID();
-        }
       }
     } else {
       //TODO figure out what this does
@@ -98,7 +105,7 @@ _.each(["insert"], function(name) {
 
     // if we are the local collection
     if (self._connection && self._connection !== Meteor.default_server) {
-
+      console.log('im in the right place');
       var enclosing = Meteor._CurrentInvocation.get();
       var alreadyInSimulation = enclosing && enclosing.isSimulation;
       if (!alreadyInSimulation && name !== "insert") {
@@ -108,7 +115,6 @@ _.each(["insert"], function(name) {
         // have selectors...
         throwIfSelectorIsNotId(args[0], name);
       }
-
       if (callback) {
         // asynchronous: on success, callback should return ret
         // (document ID for insert, undefined for update and remove),
@@ -120,6 +126,7 @@ _.each(["insert"], function(name) {
         // figure out what the fuck this callback is about and whether
         // or not it can be avoided
         // I'm pretty sure this is the RPC call
+        // debugger;
         self._connection.apply(self._prefix + name, args, function(error, result) {
           callback(error, !error && ret);
         });
@@ -286,6 +293,7 @@ Meteor.Table.prototype._defineMutationMethods = function() {
             var validatedMathodName =
                   '_validated' + method.charAt(0).toUpperCase() + method.slice(1);
             var argsWithUserId = [this.userId].concat(_.toArray(arguments));
+            // debugger;
             self[validatedMathodName].apply(self, argsWithUserId);
           } else if (self._isInsecure()) {
             // In insecure mode, allow any mutation (with a simple selector?!?!).

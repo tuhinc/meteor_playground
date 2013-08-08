@@ -5,12 +5,8 @@ setTimeout(function() {
   MoreUsers = new Meteor.Table("MoreUsers");
 }, 500);
 
-setTimeout(function() {
-  if (Meteor.isServer) {
-        MoreUsers.insert({name: "tuhin"});
-    }
-}, 2000);
 
+var r = new Minirethink();
 
 if (Meteor.isClient) {
   var scoreRandomizer = function() {

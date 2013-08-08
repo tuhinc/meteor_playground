@@ -31,8 +31,6 @@ LocalTable = function() {
   this.paused = false;
 };
 
-
-
 Minirethink = function() {
   var self = this;
   self.queries = [];
@@ -66,6 +64,12 @@ Minirethink.prototype.get = function(string) {
   return self;
 };
 
+Minirethink.prototype.clearQueries = function() {
+  var self = this;
+  self.queries = [];
+  return self;
+};
+
 Minirethink.prototype.run = function(callback) {
   var self = this;
   var results;
@@ -76,6 +80,7 @@ Minirethink.prototype.run = function(callback) {
       args = self.queries[0][1];
       results = query.apply(window, args);
       if (self.queries.length === 1) {
+        self.clearQueries();
         return results;
       }
     } else if (self.queries[i+1]) {
@@ -85,8 +90,10 @@ Minirethink.prototype.run = function(callback) {
       args = self.queries[i][1];
       results = self.queries[i][0].apply(results, args);
       if (callback) {
+        self.clearQueries();
         return callback(results);
       } else {
+        self.clearQueries();
         return results;
       }
     }
@@ -138,6 +145,28 @@ LocalTable.Cursor.prototype.forEach = function (callback, context) {
   }
 };
 
+LocalTable.Cursor.prototype.fetch = function () {
+  var self = this;
+  var res = [];
+  self.forEach(function (doc) {
+    res.push(doc);
+  });
+  return res;
+};
+
+// Minirethink.prototype.fetch = function () {
+//   var self = this;
+//   var getDocuments = function() {
+//     var res = [];
+//     self.forEach(function (doc) {
+//       res.push(doc);
+//     });
+//     return res;
+//   };
+//   self.queries.push([getDocuments, []]);
+//   return self;
+// };
+
 LocalTable.Cursor.prototype._depend = function (changers) {
   var self = this;
 
@@ -162,6 +191,7 @@ LocalTable.Cursor.prototype._depend = function (changers) {
 _.extend(LocalTable.Cursor.prototype, {
   observeChanges: function (options) {
     var self = this;
+    debugger;
 
     var query = {
       results_snapshot: null,
@@ -252,7 +282,6 @@ LocalTable.LiveResultsSet = function () {};
 
 LocalTable.prototype.insert = function(doc) {
   var self = this;
-  console.log(self);
   if (!_.has(doc, '_id')) {
     doc._id = LocalTable._useOID ? new LocalTable._ObjectID() : Random.id();
   }
@@ -278,6 +307,12 @@ LocalTable.prototype.insert = function(doc) {
       }
     }
   }
+  _.each(queriesToRecompute, function (qid) {
+    if (self.queries[qid])
+      LocalCollection._recomputeResults(self.queries[qid]);
+  });
+  self._observeQueue.drain();
+  return doc._id;
 };
 
 
