@@ -39,26 +39,26 @@ On the client side, create an instance of Minirethink to use ReQL syntax instead
 
 eg:-
 
-  // instantiate Minirethink
-  var r = new Minirethink();
+    // instantiate Minirethink
+    var r = new Minirethink();
   
-  // interact with database using ReQL syntax
-  r.table('posts').get('username').run(callback);
+    // interact with database using ReQL syntax
+    r.table('posts').get('username').run(callback);
   
 Continue to use publish and subscribe as you normally would. (rethink-live-data does not currently support autopublish)
 
 eg:-
 
-  // server: publish the posts table.
-  Meteor.publish('posts', function () {
+    // server: publish the posts table.
+    Meteor.publish('posts', function () {
     return r.table('posts').run(callback);
-  });
+    });
   
-  // client: subscribe to the posts table
-  Meteor.subscribe('posts');
+    // client: subscribe to the posts table
+    Meteor.subscribe('posts');
   
-  // client will queue incoming post records until ...
-  Posts = new Meteor.Table('posts');
+    // client will queue incoming post records until ...
+    Posts = new Meteor.Table('posts');
 
 ## Cursors
 
@@ -68,42 +68,42 @@ Currently provides support for `each`, `map`, `fetch`, `count`, and `hasNext`
 
 eg:-
 
-  cursor.each(callback[, onFinished])
+    cursor.each(callback[, onFinished])
   
-  >Lazily iterate over the result set one element at a time.
+    >Lazily iterate over the result set one element at a time.
   
 # map
 
 eg:-
 
-  cursor.map(mappingFunction) → array
+    cursor.map(mappingFunction) → array
   
-  >Transform each element of the sequence by applying the given mapping function.
+    >Transform each element of the sequence by applying the given mapping function.
 
 # fetch
 
 eg:-
 
-  cursor.fetch() → array
+    cursor.fetch() → array
   
-  >Returns an array of all documents in the cursor
+    >Returns an array of all documents in the cursor
 
 # count
 
 eg:-
 
-  cursor.count() → integer
+    cursor.count() → integer
   
-  >Transform each element of the sequence by applying the given mapping function.
+    >Transform each element of the sequence by applying the given mapping function.
   
 # hasNext
 
 eg:-
 
-  cursor.hasNext() → bool
+    cursor.hasNext() → bool
   
-  >// var hasMore = cur.hasNext();
-  >// Check if there are more elements in the cursor
+    >// var hasMore = cur.hasNext();
+    >// Check if there are more elements in the cursor
 
 
 
