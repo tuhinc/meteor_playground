@@ -7,9 +7,10 @@ This is a Smart Package that provides RethinkDB support for Meteor
 * Efficiency (Memory & CPU)
 * Scalability
 
-> Disclaimer: This is still a work-in-progress! Full functionality has not yet been implemented. There are definitely bugs! :)
+> Disclaimer: This is a work-in-progress! Full functionality has not yet been implemented. There are definitely bugs! :)
 
-# Install
+Install
+-------------
 
 Install RethinkDB from Atmosphere
     
@@ -21,12 +22,10 @@ Install From Git (If you are not using Meteorite)
     #make sure you created the packages folder
     git submodule add https://github.com/tuhinc/meteor_playground.git packages/rethink-live-data
 
-# Usage
-
-## Tables
-
+Usage
+-------------
+### Tables
 Replace `Meteor.Collection` with `Meteor.Table`.
-
     // old code
     Posts = new Meteor.Collection('posts');
 
@@ -53,41 +52,38 @@ Continue to use publish and subscribe as you normally would. (rethink-live-data 
   
     // client will queue incoming post records until ...
     Posts = new Meteor.Table('posts');
-
-## Cursors
+    
+### Cursors
 
 Currently provides support for `each`, `map`, `fetch`, `count`, and `hasNext`
 
-### each
-
+#### each
+Lazily iterate over the result set one element at a time.
+    
     cursor.each(callback[, onFinished])
-  
-    >Lazily iterate over the result set one element at a time.
-  
-### map
+    
+#### map
+Transform each element of the sequence by applying the given mapping function.
 
     cursor.map(mappingFunction) → array
   
-    >Transform each element of the sequence by applying the given mapping function.
+#### fetch
+Returns an array of all documents in the cursor
 
-### fetch
+    cursor.fetch() → array    
 
-    cursor.fetch() → array
-  
-    >Returns an array of all documents in the cursor
-
-### count
+#### count
+Transform each element of the sequence by applying the given mapping function.
 
     cursor.count() → integer
-  
-    >Transform each element of the sequence by applying the given mapping function.
-  
-### hasNext
+    
+#### hasNext
+Check if there are more elements in the cursor
 
     cursor.hasNext() → bool
   
-    >// var hasMore = cur.hasNext();
-    >// Check if there are more elements in the cursor
+    // var hasMore = cur.hasNext();
+    
 
 ## Compatibility
 
