@@ -88,8 +88,6 @@ Check if there are more elements in the cursor
 ## Compatibility
 
 * Currently does not support autopublish -- publish and subscribe functions must be used!
-* But server side `Cursor.observe()` does not exists
-* `_id` must be a `String` (will support `ObjectID` and `numbers` soon)
 
 ## Scalability
 
