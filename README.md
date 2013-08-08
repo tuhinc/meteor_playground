@@ -1,6 +1,5 @@
-meteor_playground
+RethinkDB for Meteor 
 =================
-#### RethinkDB for Meteor [![Build Status](https://travis-ci.org/arunoda/meteor-smart-collections.png?branch=master)](https://travis-ci.org/arunoda/meteor-smart-collections)
 
 This is a Smart Package that provides RethinkDB support for Meteor
 
