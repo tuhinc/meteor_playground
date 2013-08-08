@@ -27,8 +27,6 @@ Install From Git (If you are not using Meteorite)
 
 Replace `Meteor.Collection` with `Meteor.Table`.
 
-eg:-
-
     // old code
     Posts = new Meteor.Collection('posts');
 
@@ -37,8 +35,6 @@ eg:-
 
 On the client side, create an instance of Minirethink to use ReQL syntax instead of Mongo syntax.
 
-eg:-
-
     // instantiate Minirethink
     var r = new Minirethink();
   
@@ -46,8 +42,6 @@ eg:-
     r.table('posts').get('username').run(callback);
   
 Continue to use publish and subscribe as you normally would. (rethink-live-data does not currently support autopublish)
-
-eg:-
 
     // server: publish the posts table.
     Meteor.publish('posts', function () {
@@ -64,9 +58,7 @@ eg:-
 
 Currently provides support for `each`, `map`, `fetch`, `count`, and `hasNext`
 
-# each
-
-eg:-
+### each
 
     cursor.each(callback[, onFinished])
   
@@ -74,15 +66,11 @@ eg:-
   
 ### map
 
-eg:-
-
     cursor.map(mappingFunction) → array
   
     >Transform each element of the sequence by applying the given mapping function.
 
 ### fetch
-
-eg:-
 
     cursor.fetch() → array
   
@@ -90,22 +78,16 @@ eg:-
 
 ### count
 
-eg:-
-
     cursor.count() → integer
   
     >Transform each element of the sequence by applying the given mapping function.
   
 ### hasNext
 
-eg:-
-
     cursor.hasNext() → bool
   
     >// var hasMore = cur.hasNext();
     >// Check if there are more elements in the cursor
-
-
 
 ## Compatibility
 
