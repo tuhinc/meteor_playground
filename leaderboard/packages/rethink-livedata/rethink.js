@@ -29,8 +29,8 @@ _Rethink.prototype._createTable = function(tableName) {
   });
 };
 
-//TODO:: self.selector is missing -- presumably because rethink doesn't
-// have selectors and will have to do something else...
+//TODO:: self.selector is missing -- rethink doesn't
+// have selectors so another mechanism will have to be used...
 var RethinkCursorDescription = function(tableName, options) {
   var self = this;
   self.tableName = tableName;
@@ -59,7 +59,8 @@ _.each(['forEach', 'map', 'rewind', 'fetch', 'count'], function(method) {
   };
 });
 
-// TODO:: make this more clear -->
+// TODO:: make this description more clear -->
+
 // This is RethinkCursor's own publish function -- Meteor's publish function
 // does not need to be replaced because the LivedataSubscription class calls
 // _publishCursor in the context of the cursor that is returned as a result
@@ -216,43 +217,10 @@ ObserveHandle.prototype.stop = function () {
   self._liveResultsSet = null;
 };
 
+// TODO :: write logic for server side publish function
+// and see if long polling can be avoided by using Rethink's eventing system
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// TODO :: finish implementing Public API
 
 // Returns the Rethink table object; may yield.
 // _Rethink.prototype._getTable = function(tableName) {

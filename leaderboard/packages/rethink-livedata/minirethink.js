@@ -1,7 +1,7 @@
 // LocalTable: a set of documents that supports queries and modifiers
 
 // Cursor: a specification for a particular subset of documents, w/
-// a defined order, limit, and offset. creating a Cursor with LocalTable.find(),
+// a defined order, limit, and offset. create a Cursor with r.table(tablename).get(),
 
 // LiveResultsSet: the return value of a live query.
 
@@ -154,6 +154,8 @@ LocalTable.Cursor.prototype.fetch = function () {
   return res;
 };
 
+// TODO:: implement fetch
+
 // Minirethink.prototype.fetch = function () {
 //   var self = this;
 //   var getDocuments = function() {
@@ -267,16 +269,7 @@ LocalTable.Cursor.prototype._getRawObjects = function () {
   return results;
 };
 
-
-
-
-
-
-
-
-
 // handle that comes back from observe.
-
 LocalTable.LiveResultsSet = function () {};
 
 
@@ -291,11 +284,11 @@ LocalTable.prototype.insert = function(doc) {
     throw new LocalCollection.MinimongoError("Duplicate _id '" + doc._id + "'");
   }
 
-  //omg. insert that mother fucker!
+  // Phony insert
   self.docs[id] = doc;
 
   var queriesToRecompute = [];
-  // trigger live queries that match
+  // trigger only live queries that match
 
   for (var qid in self.queries) {
     var query = self.queries[qid];
@@ -315,8 +308,6 @@ LocalTable.prototype.insert = function(doc) {
   return doc._id;
 };
 
-
-
 // find returns a cursor. It does not immediately access the database
 // or return documents. Cursors provide fetch to return all matching
 // documents, map and forEach to iterate over all matching documents,
@@ -328,8 +319,6 @@ LocalTable.prototype.insert = function(doc) {
 // or an autorun), Meteor will register a dependency on the underlying data.
 // Any change to the collection that changes the documents in a cursor will trigger
 // a recomputation.
-
-
 
 
 LocalTable.prototype._saveOriginal = function (id, doc) {

@@ -1,13 +1,3 @@
-// var EventEmitter = Npm.require('events').EventEmitter;
-// var r = Npm.require('rethinkdb');
-// var RethinkClient = Npm.require('rethinkdb');
-// var Fibers = Npm.require('fibers');
-// var Future = Npm.require('fibers/future');
-// Meteor.Rethink.on('ready', function () {console.log(Meteor.Rethink.connection);});
-// export NODE_OPTIONS='--debug';
-Meteor._LivedataServer.prototype.publish = function() {
-  console.log('hello');
-};
 Meteor.Table = function(tableName, options) {
   var self = this;
   if (! (self instanceof Meteor.Table)) {
@@ -50,7 +40,6 @@ _.extend(Meteor.Table.prototype, {
 });
 
 //TODO:: add functionality for other functions such as update / remove
-//TODO:: also figure out what the fuck is going on in this function
 _.each(["insert"], function(name) {
   Meteor.Table.prototype[name] = function (/* arguments */) {
     var self = this;
@@ -79,9 +68,7 @@ _.each(["insert"], function(name) {
         }
       };
     }
-    console.log('made it here');
     if (name === "insert") {
-      console.log('im here1');
       if (!args.length) {
         throw new Error("insert requires an argument!");
       }
@@ -89,58 +76,37 @@ _.each(["insert"], function(name) {
       // first make a shallow copy of the document
       args[0] = _.extend({}, args[0]);
       if ('_id' in args[0]) {
-        console.log('im here2');
         ret = args[0]._id;
         if (!(typeof ret === 'string' || ret instanceof Meteor.Collection.ObjectID)) {
           throw new Error("Meteor requires document _id fields to be strings or ObjectIDs");
-        } 
+        }
       } else {
-          console.log('about to make new id');
           ret = args[0]._id = self._makeNewID();
       }
     } else {
-      //TODO figure out what this does
       args[0] = Meteor.Collection._rewriteSelector(args[0]);
     }
 
     // if we are the local collection
     if (self._connection && self._connection !== Meteor.default_server) {
-      console.log('im in the right place');
       var enclosing = Meteor._CurrentInvocation.get();
       var alreadyInSimulation = enclosing && enclosing.isSimulation;
       if (!alreadyInSimulation && name !== "insert") {
-        // In other words, if we're actually about to send an RPC
-        // there may be a need for an error here but I'm not sure why
-        // it has something to do with selectors, and rethink doesn't
-        // have selectors...
         throwIfSelectorIsNotId(args[0], name);
       }
+      // there should always be a callback
       if (callback) {
-        // asynchronous: on success, callback should return ret
-        // (document ID for insert, undefined for update and remove),
-        // not the method's result.
-
-        // basically this is going to call the "validated" insert
-
-        // XXX TODO XXX
-        // figure out what the fuck this callback is about and whether
-        // or not it can be avoided
-        // I'm pretty sure this is the RPC call
-        // debugger;
+        // RPC call
         self._connection.apply(self._prefix + name, args, function(error, result) {
           callback(error, !error && ret);
         });
       } else {
-        // TODO // figure out what synchronous means in this context as well
-        // here it is getting called without the callback
         self._connection.apply(self._prefix + name, args);
       }
 
     } else {
       try {
-        console.log('1')
         self._table[name].apply(self._table, args);
-        console.log('2');
       } catch (error) {
         if (callback) {
           callback(error);
@@ -336,8 +302,8 @@ Meteor.Table.prototype._validatedInsert = function(userId, doc) {
   })) {
     throw new Meteor.Error(403, "Access denied");
   }
-  self._collection.insert.call(self._collection, doc);
+  self._table.insert.call(self._table, doc);
 };
 
-
+// XXX there is still code missing
 

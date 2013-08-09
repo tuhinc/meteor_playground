@@ -14,7 +14,6 @@ _.extend(Meteor._LocalTableDriver.prototype, {
   }
 });
 
-// singleton
-Meteor._LocalTableDriver = new Meteor._LocalTableDriver;
+Meteor._LocalTableDriver = new Meteor._LocalTableDriver();
 
 }).call(this);
