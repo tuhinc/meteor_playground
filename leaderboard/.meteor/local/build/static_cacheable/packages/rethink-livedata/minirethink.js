@@ -31,6 +31,16 @@ LocalTable = function() {
   this.paused = false;
 };
 
+LocalTable._applyChanges = function (doc, changeFields) {
+  _.each(changeFields, function (value, key) {
+    if (value === undefined) {
+      delete doc[key];
+    } else {
+      doc[key] = value;
+    }
+  });
+};
+
 Minirethink = function() {
   var self = this;
   self.queries = [];
@@ -145,6 +155,11 @@ LocalTable.Cursor.prototype.forEach = function (callback, context) {
   }
 };
 
+LocalTable.Cursor.prototype.getTransform = function() {
+  var self = this;
+  return self._transform;
+}
+
 LocalTable.Cursor.prototype.fetch = function () {
   var self = this;
   var res = [];
@@ -169,38 +184,26 @@ LocalTable.Cursor.prototype.fetch = function () {
 //   return self;
 // };
 
-LocalTable.Cursor.prototype._depend = function (changers) {
-  var self = this;
-
-  if (Deps.active) {
-    var v = new Deps.Dependency();
-    v.depend();
-    var notifyChange = _.bind(v.changed, v);
-
-    var options = {_suppress_initial: true};
-    _.each(['added', 'changed', 'removed', 'addedBefore', 'movedBefore'],
-      function (fnName) {
-        if (changers[fnName]) {
-          options[fnName] = notifyChange;
-        }
-      });
-
-    // observeChanges will stop() when this computation is invalidated
-    self.observeChanges(options);
-  }
-};
+// handle that comes back from observe.
+LocalTable.LiveResultsSet = function () {};
 
 _.extend(LocalTable.Cursor.prototype, {
+  observe: function (options) {
+    var self = this;
+    return LocalTable._observeFromObserveChanges(self, options);
+  },
   observeChanges: function (options) {
     var self = this;
-    debugger;
 
     var query = {
+      selector_f: self.selector_f,
       results_snapshot: null,
       cursor: self,
       observeChanges: options.observeChanges
     };
     var qid;
+
+
     if (self.reactive) {
       qid = self.collection.next_qid++;
       self.table.queries[qid] = query;
@@ -230,9 +233,26 @@ _.extend(LocalTable.Cursor.prototype, {
         }
       };
     };
+
     query.added = wrapCallback(options.added);
     query.changed = wrapCallback(options.changed);
     query.removed = wrapCallback(options.removed);
+
+    if (ordered) {
+      query.moved = wrapCallback(options.moved);
+      query.addedBefore = wrapCallback(options.addedBefore);
+      query.movedBefore = wrapCallback(options.movedBefore);
+    }
+
+    if (!options._suppress_initial && !self.collection.paused) {
+      _.each(query.results, function (doc, i) {
+        var fields = EJSON.clone(doc);
+        delete fields._id;
+        if (ordered)
+          query.addedBefore(doc._id, fields, null);
+        query.added(doc._id, fields);
+      });
+    }
 
     var handle = new LocalTable.LiveResultsSet();
       _.extend(handle, {
@@ -269,9 +289,27 @@ LocalTable.Cursor.prototype._getRawObjects = function () {
   return results;
 };
 
-// handle that comes back from observe.
-LocalTable.LiveResultsSet = function () {};
 
+LocalTable.Cursor.prototype._depend = function (changers) {
+  var self = this;
+
+  if (Deps.active) {
+    var v = new Deps.Dependency();
+    v.depend();
+    var notifyChange = _.bind(v.changed, v);
+
+    var options = {_suppress_initial: true};
+    _.each(['added', 'changed', 'removed', 'addedBefore', 'movedBefore'],
+      function (fnName) {
+        if (changers[fnName]) {
+          options[fnName] = notifyChange;
+        }
+      });
+
+    // observeChanges will stop() when this computation is invalidated
+    self.observeChanges(options);
+  }
+};
 
 LocalTable.prototype.insert = function(doc) {
   var self = this;
@@ -320,17 +358,67 @@ LocalTable.prototype.insert = function(doc) {
 // Any change to the collection that changes the documents in a cursor will trigger
 // a recomputation.
 
+LocalTable._insertInResults = function (query, doc) {
+  // if dealing with ordered insertion it will be a bit more complicated
+  var fields = EJSON.clone(doc);
+  delete fields._id;
+  query.added(doc._id, fields);
+  query.results[LocalCollection._idStringify(doc._id)] = doc;
+};
 
-LocalTable.prototype._saveOriginal = function (id, doc) {
-  var self = this;
-  // Are we even trying to save originals?
-  if (!self._savedOriginals)
-    return;
-  // Have we previously mutated the original (and so 'doc' is not actually
-  // original)?  (Note the 'has' check rather than truth: we store undefined
-  // here for inserted docs!)
-  if (_.has(self._savedOriginals, id))
-    return;
-  self._savedOriginals[id] = EJSON.clone(doc);
+// borrowing some more Minimongo helper functions
+LocalTable._diffQueryChanges = LocalCollection._diffQueryChanges;
+LocalTable._recomputeResults = LocalCollection._recomputeResults;
+LocalTable.prototype.pauseObservers = LocalCollection.prototype.pauseObservers;
+
+LocalTable._observeFromObserveChanges = function (cursor, callbacks) {
+  var transform = cursor.getTransform();
+  if (!transform) {
+    transform = function(doc) {
+      return doc;
+    };
+  }
+    if (callbacks.addedAt && callbacks.added)
+    throw new Error("Please specify only one of added() and addedAt()");
+  if (callbacks.changedAt && callbacks.changed)
+    throw new Error("Please specify only one of changed() and changedAt()");
+  if (callbacks.removed && callbacks.removedAt)
+    throw new Error("Please specify only one of removed() and removedAt()");
+  if (callbacks.addedAt || callbacks.movedTo ||
+      callbacks.changedAt || callbacks.removedAt)
+    return LocalCollection._observeOrderedFromObserveChanges(cursor, callbacks, transform);
+  else
+    return LocalCollection._observeUnorderedFromObserveChanges(cursor, callbacks, transform);
+};
+
+LocalTable._observeUnorderedFromObserveChanges =
+    function (cursor, callbacks, transform) {
+  var docs = {};
+  var suppressed = !!callbacks._suppress_initial;
+  var handle = cursor.observeChanges({
+    added: function (id, fields) {
+      var strId = LocalCollection._idStringify(id);
+      var doc = EJSON.clone(fields);
+      doc._id = id;
+      docs[strId] = doc;
+      suppressed || callbacks.added && callbacks.added(transform(doc));
+    },
+    changed: function (id, fields) {
+      var strId = LocalCollection._idStringify(id);
+      var doc = docs[strId];
+      var oldDoc = EJSON.clone(doc);
+      // writes through to the doc set
+      LocalCollection._applyChanges(doc, fields);
+      suppressed || callbacks.changed && callbacks.changed(transform(doc), transform(oldDoc));
+    },
+    removed: function (id) {
+      var strId = LocalCollection._idStringify(id);
+      var doc = docs[strId];
+      delete docs[strId];
+      suppressed || callbacks.removed && callbacks.removed(transform(doc));
+    }
+  });
+  suppressed = false;
+  return handle;
 };
 }).call(this);
