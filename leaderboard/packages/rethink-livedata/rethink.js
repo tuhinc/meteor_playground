@@ -218,6 +218,21 @@ ObserveHandle.prototype.stop = function () {
   self._liveResultsSet = null;
 };
 
+_Rethink.prototype._observeChanges = function (
+  cursorDescription, callbacks) {
+  var self = this;
+  var observeKey = JSON.stringify(
+    _.extend({ordered: ordered}, cursorDescription));
+
+  var liveResultsSet;
+  var observeHandle;
+  var newlyCreated = false;
+
+  // Find a matching LiveResultsSet or create a new one. This net block
+  // is guaranteed to not yield (and it doesn't call anything that can observe a
+  // new query), so no other calls ot this function can interleave with it.
+}
+
 // TODO :: write logic for server side publish function
 // and see if long polling can be avoided by using Rethink's eventing system
 
@@ -284,4 +299,3 @@ _Rethink.prototype.insert = function(tableName, document) {
   r.table(self.tableName).insert(document).run(self.connection, function(err, cursor) {});
     //there has to be something useful you can do here with the cursor
 };
-Meteor._Rethink = _Rethink;
