@@ -73,6 +73,7 @@ RethinkCursor.prototype._publishCursor = function (sub) {
 
   var observeHandle = self.observeChanges({
     added: function (id, fields) {
+      // these result in DDP messages being sent over the wire
       sub.added(collection, id, fields);
     },
     changed: function (id, fields) {
