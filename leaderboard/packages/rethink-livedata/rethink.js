@@ -5,6 +5,10 @@ var Fiber = Npm.require('fibers');
 var path = Npm.require('path');
 var Future = Npm.require(path.join('fibers', 'future'));
 
+_.extend(Meteor, {
+  _Rethink: _Rethink
+});
+
 _Rethink = function(url) {
   var self = this;
   self.table_queue = [];
