@@ -31,12 +31,11 @@
 };
 
 _.extend(Meteor.Table.prototype, {
-  // get: function(string, callback) {
-  //   var self = this;
-  //   // self.connection = Meteor.Rethink.connection;
-  //   r.table(self.tableName).get(string).run(self.connection, function(err, cursor) {
-  //   });
-  // }
+  find: function(string, callback) {
+    var self = this;
+    console.log(self._table);
+    return self._table.find();
+    }
 });
 
 //TODO:: add functionality for other functions such as update / remove

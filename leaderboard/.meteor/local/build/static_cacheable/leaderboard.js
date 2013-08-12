@@ -1,12 +1,38 @@
 (function(){ // Set up a collection to contain player information. On the server,
 // it is backed by a MongoDB collection named "players".
 Players = new Meteor.Collection("players");
-setTimeout(function() {
+
+if (Meteor.isServer) {
+  setTimeout(function() {
+    MoreUsers = new Meteor.Table("MoreUsers");
+    MoreUsers.insert({name: "tuhintuhin"});
+    Meteor.publish("MoreUsers", function() {
+      return MoreUsers.find();
+    });
+  }, 10);
+}
+
+if (Meteor.isClient) {
+  setTimeout(function() {
+  Meteor.subscribe("MoreUsers", function() {
+    console.log('holy shit its working');
+  });
   MoreUsers = new Meteor.Table("MoreUsers");
-}, 500);
+  var r = new Minirethink();
+  var cursor = r.table('MoreUsers').run();
+  console.log(cursor);
+  console.log(cursor.fetch());
+  var handle = cursor.observeChanges({
+    added: function() {
+      console.log('something was added!');
+    }
+  });
+  }, 1000);
+}
 
 
-var r = new Minirethink();
+
+// var r = new Minirethink();
 
 if (Meteor.isClient) {
   var scoreRandomizer = function() {

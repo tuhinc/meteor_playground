@@ -5,10 +5,6 @@ var Fiber = Npm.require('fibers');
 var path = Npm.require('path');
 var Future = Npm.require(path.join('fibers', 'future'));
 
-_.extend(Meteor, {
-  _Rethink: _Rethink
-});
-
 _Rethink = function(url) {
   var self = this;
   self.table_queue = [];
@@ -33,8 +29,8 @@ _Rethink.prototype._createTable = function(tableName) {
   });
 };
 
-//TODO:: self.selector is missing -- rethink doesn't
-// have selectors so another mechanism will have to be used...
+//TODO:: self.selector is missing -- rethink doesn't have selectors 
+// so another mechanism will have to be used...
 var RethinkCursorDescription = function(tableName, options) {
   var self = this;
   self.tableName = tableName;
@@ -63,28 +59,54 @@ _.each(['forEach', 'map', 'rewind', 'fetch', 'count'], function(method) {
   };
 });
 
+
+_Rethink.prototype.insert = function(tableName, document) {
+  var self = this;
+  console.log('insert function called on the server side');
+  if (!document._id) {
+    document._id = Random.id();
+  }
+
+  // this is not where it actually gets inserted -- it gets passed
+  // to the table constructor prototype where it gets sluttily passed
+  // around some more, validated, and then finally called somewhere
+  // I have yet to figure out where....
+  r.table(self.tableName).insert(document).run(self.connection, function(err, cursor) {
+    console.log("successfully inserted into server side db");
+  });
+    //there has to be something useful you can do here with the cursor
+};
+
+_Rethink.prototype.find = function (tableName) {
+  var self = this;
+  console.log('find function was called!');
+  return new RethinkCursor(self, new RethinkCursorDescription(tableName));
+};
+
 // TODO:: make this description more clear -->
 
 // This is RethinkCursor's own publish function -- Meteor's publish function
 // does not need to be replaced because the LivedataSubscription class calls
 // _publishCursor in the context of the cursor that is returned as a result
 // of the handler (which will be a Rethink cursor)
-
+var fence = Meteor._CurrentWriteFence.get();
+console.log('this is the write fence', fence);
 RethinkCursor.prototype._publishCursor = function (sub) {
   //self is the cursor
+  console.log('cursor: ', this);
   var self = this;
   var table = self._cursorDescription.tableName;
-
+  console.log('table: ', table);
   var observeHandle = self.observeChanges({
     added: function (id, fields) {
       // these result in DDP messages being sent over the wire
-      sub.added(collection, id, fields);
+      sub.added(table, id, fields);
     },
     changed: function (id, fields) {
-      sub.changed(collection, id, fields);
+      sub.changed(table, id, fields);
     },
     removed: function (id) {
-      sub.removed(collection, id);
+      sub.removed(table, id);
     }
   });
 
@@ -106,8 +128,8 @@ RethinkCursor.prototype.observe = function (callbacks) {
 RethinkCursor.prototype.observeChanges = function (callbacks) {
   var self = this;
   //TODO: ordered?
-  return self._rethink.observeChanges(
-    self._cursorDescription, ordered, callbacks);
+  return self._rethink._observeChanges(
+    self._cursorDescription, callbacks);
 };
 
 //TODO: missing 'useTransform' argument
@@ -121,11 +143,80 @@ _Rethink.prototype._createSynchronousCursor = function (cursorDescription) {
   var dbCursor;
   r.table(tableName).run(self.connection, function(err, cur) {
     dbCursor = cur;
+    console.log(dbCursor);
   });
 
   return new RethinkSynchronousCursor(dbCursor);
 };
 
+
+Meteor._LivedataSession.prototype.processMessage = function (msg_in, socket) {
+    var self = this;
+    if (socket !== self.socket)
+      return;
+    console.log('MESSAGE', msg_in);
+    self.in_queue.push(msg_in);
+    if (self.worker_running)
+      return;
+    self.worker_running = true;
+
+    var processNext = function () {
+      var msg = self.in_queue.shift();
+      if (!msg) {
+        self.worker_running = false;
+        return;
+      }
+
+      Fiber(function () {
+        var blocked = true;
+
+        var unblock = function () {
+          if (!blocked)
+            return; // idempotent
+          blocked = false;
+          processNext();
+        };
+
+        if (_.has(self.protocol_handlers, msg.msg))
+          self.protocol_handlers[msg.msg].call(self, msg, unblock);
+        else
+          self.sendError('Bad request', msg);
+        unblock(); // in case the handler didn't already do it
+      }).run();
+    };
+
+    processNext();
+  };
+
+Meteor._LivedataSession.prototype.protocol_handlers.sub = function (msg) {
+      var self = this;
+
+      // reject malformed messages
+      if (typeof (msg.id) !== "string" ||
+          typeof (msg.name) !== "string" ||
+          (('params' in msg) && !(msg.params instanceof Array))) {
+        self.sendError("Malformed subscription", msg);
+        return;
+      }
+
+      if (!self.server.publish_handlers[msg.name]) {
+        self.send({
+          msg: 'nosub', id: msg.id,
+          error: new Meteor.Error(404, "Subscription not found")});
+        return;
+      }
+
+      if (_.has(self._namedSubs, msg.id))
+        // subs are idempotent, or rather, they are ignored if a sub
+        // with that id already exists. this is important during
+        // reconnect.
+        return;
+
+      var handler = self.server.publish_handlers[msg.name];
+      console.log('handler function: ', handler);
+      self._startSubscription(handler, msg.id, msg.params, msg.name);
+
+    };
 var RethinkSynchronousCursor = function(dbCursor) {
   self._dbCursor = dbCursor;
   self._synchronousNextObject = Future.wrap(
@@ -225,17 +316,28 @@ ObserveHandle.prototype.stop = function () {
 _Rethink.prototype._observeChanges = function (
   cursorDescription, callbacks) {
   var self = this;
+  var ordered = false;
   var observeKey = JSON.stringify(
     _.extend({ordered: ordered}, cursorDescription));
 
   var liveResultsSet;
   var observeHandle;
   var newlyCreated = false;
+  console.log('callbacks!!!: ', callbacks);
+  if (newlyCreated) {
+    console.log('newlycreated');
+    liveResultsSet._addFirstObserveHandle(observeHandle);
+  } else {
+    callbacks.added();
+  }
 
-  // Find a matching LiveResultsSet or create a new one. This net block
-  // is guaranteed to not yield (and it doesn't call anything that can observe a
-  // new query), so no other calls ot this function can interleave with it.
-}
+  return observeHandle;
+};
+
+
+_.extend(Meteor, {
+  _Rethink: _Rethink
+});
 
 // TODO :: write logic for server side publish function
 // and see if long polling can be avoided by using Rethink's eventing system
@@ -281,25 +383,3 @@ _Rethink.prototype._observeChanges = function (
 //     generated_keys - a list of generated primary key values;
 //     deleted and skipped - 0 for an insert operation.
 
-_Rethink.prototype.insert = function(tableName, document) {
-  var self = this;
-  console.log('insert function called on the server side');
-  if (!document._id) {
-    document._id = Random.id();
-  }
-
-  // var write = self._maybeBeginWrite();
-
-  // try {
-  //   var table = self._getTable(tableName);
-  //   //table should equal r.table(self.tableName);
-  // } catch(err) {
-  //   throw new Meteor.Error(500, err.message);
-  // }
-  // this is not where it actually gets inserted -- it gets passed
-  // to the table constructor prototype where it gets sluttily passed
-  // around some more, validated, and then finally called somewhere
-  // I have yet to figure out where....
-  r.table(self.tableName).insert(document).run(self.connection, function(err, cursor) {});
-    //there has to be something useful you can do here with the cursor
-};

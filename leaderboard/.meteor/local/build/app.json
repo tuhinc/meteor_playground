@@ -40,12 +40,12 @@
     "app/packages/startup/startup_server.js",
     "app/packages/handlebars/parse.js",
     "app/packages/past/past.js",
-    "app/packages/autopublish/autopublish.js",
     "app/packages/insecure/insecure.js",
     "app/packages/rethink-livedata/rethink.js",
     "app/packages/rethink-livedata/tables.js",
     "app/packages/rethink-livedata/minirethink.js",
     "app/packages/rethink-livedata/local_table_driver.js",
+    "app/packages/rethink-livedata/invalidator.js",
     "app/packages/rethink-livedata/remote_table_driver.js",
     "app/leaderboard.js"
   ],
@@ -487,18 +487,18 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/packages/rethink-livedata/tables.js?da4d3dac3c0377236420fc6f947b50c557b3fd3f",
-      "size": 10944,
-      "hash": "da4d3dac3c0377236420fc6f947b50c557b3fd3f"
+      "url": "/packages/rethink-livedata/tables.js?3562dc495e36c830f50f1e9d18df2dce00ff0041",
+      "size": 10845,
+      "hash": "3562dc495e36c830f50f1e9d18df2dce00ff0041"
     },
     {
       "path": "static_cacheable/packages/rethink-livedata/minirethink.js",
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/packages/rethink-livedata/minirethink.js?c5ec022f61a2982eb5a4436a4bce80bf739a78de",
-      "size": 11964,
-      "hash": "c5ec022f61a2982eb5a4436a4bce80bf739a78de"
+      "url": "/packages/rethink-livedata/minirethink.js?2e8af819bffecf29ac3b2529f91078cb662ab279",
+      "size": 11735,
+      "hash": "2e8af819bffecf29ac3b2529f91078cb662ab279"
     },
     {
       "path": "static_cacheable/packages/rethink-livedata/local_table_driver.js",
@@ -523,9 +523,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/leaderboard.js?d89e8a591b50dcec640f60e974e07212d3df12d6",
-      "size": 2615,
-      "hash": "d89e8a591b50dcec640f60e974e07212d3df12d6"
+      "url": "/leaderboard.js?1472dbdceb0efda87d29f984a8ef096cac612d0c",
+      "size": 3224,
+      "hash": "1472dbdceb0efda87d29f984a8ef096cac612d0c"
     },
     {
       "path": "static_cacheable/leaderboard.css",
@@ -539,7 +539,7 @@
     {
       "path": "app.html",
       "where": "internal",
-      "hash": "d1c3d5ffd232cc980500c13f1b45afadb248e40d"
+      "hash": "085a767616f2359262fdfa12637f57b8635fe27d"
     }
   ],
   "release": "0.6.4.1"

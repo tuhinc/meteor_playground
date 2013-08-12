@@ -205,11 +205,11 @@ _.extend(LocalTable.Cursor.prototype, {
 
 
     if (self.reactive) {
-      qid = self.collection.next_qid++;
+      qid = self.table.next_qid++;
       self.table.queries[qid] = query;
     }
     query.results = self._getRawObjects();
-    if (self.collection.paused) {
+    if (self.table.paused) {
       query.results_snapshot = {};
     }
 
@@ -238,13 +238,7 @@ _.extend(LocalTable.Cursor.prototype, {
     query.changed = wrapCallback(options.changed);
     query.removed = wrapCallback(options.removed);
 
-    if (ordered) {
-      query.moved = wrapCallback(options.moved);
-      query.addedBefore = wrapCallback(options.addedBefore);
-      query.movedBefore = wrapCallback(options.movedBefore);
-    }
-
-    if (!options._suppress_initial && !self.collection.paused) {
+    if (!options._suppress_initial && !self.table.paused) {
       _.each(query.results, function (doc, i) {
         var fields = EJSON.clone(doc);
         delete fields._id;
@@ -330,7 +324,7 @@ LocalTable.prototype.insert = function(doc) {
 
   for (var qid in self.queries) {
     var query = self.queries[qid];
-    if (query.selector_f(doc)) {
+    if (true) {
       if (query.cursor.skip || query.cursor.limit) {
         queriesToRecompute.push(qid);
       } else {
