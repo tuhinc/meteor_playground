@@ -7,8 +7,8 @@ var Future = Npm.require(path.join('fibers', 'future'));
 
 _Rethink = function(url) {
   var self = this;
+
   self.table_queue = [];
-  self.liveResultsSets = {};
 
   r.connect({
     host:'localhost',
@@ -19,8 +19,10 @@ _Rethink = function(url) {
      console.log('connected');
      self.connection = connection;
   });
+  self.invalidator = new Meteor.Invalidator(self);
 };
 
+_.extend(_Rethink.prototype, Object.create(EventEmitter.prototype));
 _Rethink.prototype._createTable = function(tableName) {
   var self = this;
   self.tableName = tableName;
@@ -45,7 +47,9 @@ var RethinkCursor = function(rethink, cursorDescription) {
   self._synchronousCursor = null;
 };
 
-_.each(['forEach', 'map', 'rewind', 'fetch', 'count'], function(method) {
+_.extend(RethinkCursor.prototype, Object.create(EventEmitter.prototype));
+
+_.each(['each', 'map', 'rewind', 'fetch', 'count'], function(method) {
   RethinkCursor.prototype[method] = function() {
     var self = this;
 
@@ -58,7 +62,6 @@ _.each(['forEach', 'map', 'rewind', 'fetch', 'count'], function(method) {
       self.synchronousCursor, arguments);
   };
 });
-
 
 _Rethink.prototype.insert = function(tableName, document) {
   var self = this;
@@ -89,24 +92,28 @@ _Rethink.prototype.find = function (tableName) {
 // does not need to be replaced because the LivedataSubscription class calls
 // _publishCursor in the context of the cursor that is returned as a result
 // of the handler (which will be a Rethink cursor)
-var fence = Meteor._CurrentWriteFence.get();
-console.log('this is the write fence', fence);
+// var fence = Meteor._CurrentWriteFence.get();
+// console.log('this is the write fence', fence);
+
 RethinkCursor.prototype._publishCursor = function (sub) {
   //self is the cursor
   console.log('cursor: ', this);
+  console.log('publish function was called');
+  console.log('subscription was called?', !!sub);
   var self = this;
   var table = self._cursorDescription.tableName;
   console.log('table: ', table);
   var observeHandle = self.observeChanges({
     added: function (id, fields) {
       // these result in DDP messages being sent over the wire
-      sub.added(table, id, fields);
+      console.log('added triggered on the server side!');
+      sub.added(tableName, id, fields);
     },
     changed: function (id, fields) {
-      sub.changed(table, id, fields);
+      sub.changed(tableName, id, fields);
     },
     removed: function (id) {
-      sub.removed(table, id);
+      sub.removed(tableName, id);
     }
   });
 
@@ -120,6 +127,19 @@ RethinkCursor.prototype._getTableName = function() {
   return self._cursorDescription.tableName;
 };
 
+RethinkCursor.prototype._added = function(doc) {
+  this._fiberEmit('added', doc_id, doc);
+};
+
+RethinkCursor.prototype._fiberEmit = function(event, doc) {
+  var self = this;
+  var args = arguments;
+
+  Fiber(function() {
+    self.emit.apply(self, args);
+  }).run();
+};
+
 RethinkCursor.prototype.observe = function (callbacks) {
   var self = this;
   return LocalTable._observeFromObserveChanges(self, callbacks);
@@ -127,9 +147,10 @@ RethinkCursor.prototype.observe = function (callbacks) {
 
 RethinkCursor.prototype.observeChanges = function (callbacks) {
   var self = this;
+  console.log('observeChanges was called');
   //TODO: ordered?
   return self._rethink._observeChanges(
-    self._cursorDescription, callbacks);
+    self._cursorDescription, callbacks, self);
 };
 
 //TODO: missing 'useTransform' argument
@@ -143,10 +164,17 @@ _Rethink.prototype._createSynchronousCursor = function (cursorDescription) {
   var dbCursor;
   r.table(tableName).run(self.connection, function(err, cur) {
     dbCursor = cur;
-    console.log(dbCursor);
   });
 
   return new RethinkSynchronousCursor(dbCursor);
+  // r.table(tableName).run(self.connection, function(err, cur) {
+  //   dbCursor = cur;
+  //   self.emit('ready');
+  // });
+  // self.once('ready', function() {
+  //   console.log('i am funally ready');
+  //   return new RethinkSynchronousCursor(dbCursor);
+  // });
 };
 
 
@@ -218,10 +246,10 @@ Meteor._LivedataSession.prototype.protocol_handlers.sub = function (msg) {
 
     };
 var RethinkSynchronousCursor = function(dbCursor) {
+  var self = this;
   self._dbCursor = dbCursor;
   self._synchronousNextObject = Future.wrap(
     dbCursor.next.bind(dbCursor), 0);
-  self._synchronousCount = Future.wrap(dbCursor.count.bind(dbCursor));
   self._visitedIds = {};
 };
 
@@ -314,24 +342,38 @@ ObserveHandle.prototype.stop = function () {
 };
 
 _Rethink.prototype._observeChanges = function (
-  cursorDescription, callbacks) {
+  cursorDescription, callbacks, cursor) {
+  console.log('_observeChanges was called');
   var self = this;
-  var ordered = false;
-  var observeKey = JSON.stringify(
-    _.extend({ordered: ordered}, cursorDescription));
+  ['added', 'changed', 'removed'].forEach(function(event) {
+    if (typeof(callbacks[event]) === 'function') {
+      cursor.on(event, callbacks[event]);
+    }
+  });
 
-  var liveResultsSet;
-  var observeHandle;
-  var newlyCreated = false;
-  console.log('callbacks!!!: ', callbacks);
-  if (newlyCreated) {
-    console.log('newlycreated');
-    liveResultsSet._addFirstObserveHandle(observeHandle);
-  } else {
-    callbacks.added();
-  }
+  // Use the tableName to get the table from the Tables map
+  self.invalidator.addCursor(cursor);
 
-  return observeHandle;
+  cursor.each(function(item) {
+    cursor._added(item);
+  });
+  // var ordered = false;
+  // var observeKey = JSON.stringify(
+  //   _.extend({ordered: ordered}, cursorDescription));
+
+  // var liveResultsSet;
+  // var observeHandle;
+
+  // var newlyCreated = false;
+  // console.log('callbacks!!!: ', callbacks);
+  // if (newlyCreated) {
+  //   console.log('newlycreated');
+  //   liveResultsSet._addFirstObserveHandle(observeHandle);
+  // } else {
+  //   callbacks.added();
+  // }
+
+  // return observeHandle;
 };
 
 

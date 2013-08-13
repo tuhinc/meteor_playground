@@ -7,6 +7,9 @@
     connection: undefined,
     _driver: undefined
   }, options);
+  self.map = {};
+  // Add table to overall map for easy retrieval
+  self.map[tableName] = self;
 
   self._makeNewID = function () {
     return Random.id();
@@ -303,8 +306,4 @@ Meteor.Table.prototype._validatedInsert = function(userId, doc) {
   }
   self._table.insert.call(self._table, doc);
 };
-
-// XXX there is still code missing
-
-
 }).call(this);
