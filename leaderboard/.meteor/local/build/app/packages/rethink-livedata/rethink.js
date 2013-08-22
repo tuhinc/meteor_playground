@@ -23,6 +23,7 @@ _Rethink = function(url) {
 };
 
 _.extend(_Rethink.prototype, Object.create(EventEmitter.prototype));
+
 _Rethink.prototype._createTable = function(tableName) {
   var self = this;
   self.tableName = tableName;
@@ -44,24 +45,19 @@ var RethinkCursor = function(rethink, cursorDescription) {
 
   self._rethink = rethink;
   self._cursorDescription = cursorDescription;
-  self._synchronousCursor = null;
+};
+
+RethinkCursor.prototype.init = function(rethinkCursor, table) {
+  var self = this;
+  console.log('init was called!');
+  self._cursor = rethinkCursor;
+  self._table = table;
+  self._used = false;
+  self.emit('ready');
 };
 
 _.extend(RethinkCursor.prototype, Object.create(EventEmitter.prototype));
 
-_.each(['each', 'map', 'rewind', 'fetch', 'count'], function(method) {
-  RethinkCursor.prototype[method] = function() {
-    var self = this;
-
-    if (!self._synchronousCursor) {
-      self._synchronousCursor = self._rethink._createSynchronousCursor(
-        self._cursorDescription, true);
-    }
-
-    return self._synchronousCursor[method].apply(
-      self.synchronousCursor, arguments);
-  };
-});
 
 _Rethink.prototype.insert = function(tableName, document) {
   var self = this;
@@ -80,9 +76,9 @@ _Rethink.prototype.insert = function(tableName, document) {
     //there has to be something useful you can do here with the cursor
 };
 
+
 _Rethink.prototype.find = function (tableName) {
   var self = this;
-  console.log('find function was called!');
   return new RethinkCursor(self, new RethinkCursorDescription(tableName));
 };
 
@@ -95,25 +91,20 @@ _Rethink.prototype.find = function (tableName) {
 // var fence = Meteor._CurrentWriteFence.get();
 // console.log('this is the write fence', fence);
 
-RethinkCursor.prototype._publishCursor = function (sub) {
-  //self is the cursor
-  console.log('cursor: ', this);
-  console.log('publish function was called');
-  console.log('subscription was called?', !!sub);
+RethinkCursor.prototype._publishCursor = function (sub, handler) {
   var self = this;
   var table = self._cursorDescription.tableName;
-  console.log('table: ', table);
   var observeHandle = self.observeChanges({
     added: function (id, fields) {
       // these result in DDP messages being sent over the wire
       console.log('added triggered on the server side!');
-      sub.added(tableName, id, fields);
+      sub.added(table, id, fields);
     },
     changed: function (id, fields) {
-      sub.changed(tableName, id, fields);
+      sub.changed(table, id, fields);
     },
     removed: function (id) {
-      sub.removed(tableName, id);
+      sub.removed(table, id);
     }
   });
 
@@ -156,95 +147,42 @@ RethinkCursor.prototype.observeChanges = function (callbacks) {
 //TODO: missing 'useTransform' argument
 //TODO:: this will probably need to be wrapped in a future
 //TODO:: what should I do with this beautiful callback I've been given?
-_Rethink.prototype._createSynchronousCursor = function (cursorDescription) {
 
+_Rethink.prototype._getCursor = function(tableName) {
   var self = this;
-  var options = cursorDescription.options;
-  var tableName = cursorDescription.tableName;
-  var dbCursor;
-  r.table(tableName).run(self.connection, function(err, cur) {
-    dbCursor = cur;
-  });
 
-  return new RethinkSynchronousCursor(dbCursor);
-  // r.table(tableName).run(self.connection, function(err, cur) {
-  //   dbCursor = cur;
-  //   self.emit('ready');
-  // });
-  // self.once('ready', function() {
-  //   console.log('i am funally ready');
-  //   return new RethinkSynchronousCursor(dbCursor);
-  // });
+  var future = new Future();
+  r.db('test').table(tableName).run(self.connection, future.resolver());
+
+  return future.wait();
+
 };
 
-
-Meteor._LivedataSession.prototype.processMessage = function (msg_in, socket) {
-    var self = this;
-    if (socket !== self.socket)
-      return;
-    console.log('MESSAGE', msg_in);
-    self.in_queue.push(msg_in);
-    if (self.worker_running)
-      return;
-    self.worker_running = true;
-
-    var processNext = function () {
-      var msg = self.in_queue.shift();
-      if (!msg) {
-        self.worker_running = false;
-        return;
-      }
-
-      Fiber(function () {
-        var blocked = true;
-
-        var unblock = function () {
-          if (!blocked)
-            return; // idempotent
-          blocked = false;
-          processNext();
-        };
-
-        if (_.has(self.protocol_handlers, msg.msg))
-          self.protocol_handlers[msg.msg].call(self, msg, unblock);
-        else
-          self.sendError('Bad request', msg);
-        unblock(); // in case the handler didn't already do it
-      }).run();
-    };
-
-    processNext();
-  };
-
-Meteor._LivedataSession.prototype.protocol_handlers.sub = function (msg) {
+_.each(['each', 'map', 'rewind', 'fetch', 'count'], function(method) {
+  RethinkCursor.prototype[method] = function() {
       var self = this;
-
-      // reject malformed messages
-      if (typeof (msg.id) !== "string" ||
-          typeof (msg.name) !== "string" ||
-          (('params' in msg) && !(msg.params instanceof Array))) {
-        self.sendError("Malformed subscription", msg);
-        return;
+      if (!self._synchronousCursor) {
+        self._synchronousCursor = self._rethink._createSynchronousCursor(
+          self._cursorDescription);
       }
-
-      if (!self.server.publish_handlers[msg.name]) {
-        self.send({
-          msg: 'nosub', id: msg.id,
-          error: new Meteor.Error(404, "Subscription not found")});
-        return;
+      while (!self._synchronousCursor) {
+        //don't do anything
       }
-
-      if (_.has(self._namedSubs, msg.id))
-        // subs are idempotent, or rather, they are ignored if a sub
-        // with that id already exists. this is important during
-        // reconnect.
-        return;
-
-      var handler = self.server.publish_handlers[msg.name];
-      console.log('handler function: ', handler);
-      self._startSubscription(handler, msg.id, msg.params, msg.name);
-
+      console.log('made it out of while loop');
+      return self._synchronousCursor[method].apply(
+        self._synchronousCursor, arguments);
     };
+});
+
+_Rethink.prototype._createSynchronousCursor = function (cursorDescription) {
+  var fiber = Fiber.current;
+  var self = this;
+  // var options = cursorDescription.options;
+  var tableName = cursorDescription.tableName;
+  var dbCursor = self._getCursor(tableName);
+  return new RethinkSynchronousCursor(dbCursor);
+};
+
 var RethinkSynchronousCursor = function(dbCursor) {
   var self = this;
   self._dbCursor = dbCursor;
@@ -262,13 +200,12 @@ _.extend(RethinkSynchronousCursor.prototype, {
         return null;
       }
       var strId = Meteor.idStringify(doc._id);
-      if (self.visitedIds[strId]) continue;
+      if (self._visitedIds[strId]) continue;
       self._visitedIds[strId] = true;
 
       return doc;
     }
   },
-
   each: function(callback) {
     var self = this;
 
@@ -283,7 +220,6 @@ _.extend(RethinkSynchronousCursor.prototype, {
       callback(doc);
     }
   },
-
   map: function (callback) {
     var self = this;
     var res = [];
@@ -292,22 +228,18 @@ _.extend(RethinkSynchronousCursor.prototype, {
     });
     return res;
   },
-
   fetch: function() {
     var self = this;
     return self.map(_.identity);
   },
-
   count: function() {
     var self = this;
     return self._synchronousCount().wait();
   },
-
   hasNext: function() {
     var self = this;
     return self.hasNext();
   },
-
   getRawObjects: function (ordered) {
     var self = this;
     if (ordered) {
@@ -350,13 +282,17 @@ _Rethink.prototype._observeChanges = function (
       cursor.on(event, callbacks[event]);
     }
   });
+  console.log('this is what fetch returns!', cursor.each(console.log));
 
   // Use the tableName to get the table from the Tables map
-  self.invalidator.addCursor(cursor);
+  // self.invalidator.addCursor(cursor);
 
-  cursor.each(function(item) {
-    cursor._added(item);
-  });
+  // cursor.each(function(item) {
+  //   cursor._added(item);
+  // });
+
+  console.log('cursor as it gets passed into _observeChanges: ', cursor);
+  // cursor._added();
   // var ordered = false;
   // var observeKey = JSON.stringify(
   //   _.extend({ordered: ordered}, cursorDescription));

@@ -36,9 +36,8 @@ Meteor.Table = function(tableName, options) {
 _.extend(Meteor.Table.prototype, {
   find: function(string, callback) {
     var self = this;
-    console.log(self._table);
     return self._table.find();
-    }
+  }
 });
 
 //TODO:: add functionality for other functions such as update / remove
